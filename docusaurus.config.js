@@ -1,7 +1,10 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
+require("dotenv").config();
+
 const {
+  redirectsPlugin,
   tailwindPlugin,
   webpackPlugin,
 } = require('./src/plugins');
@@ -9,16 +12,17 @@ const {
 const lightCodeTheme = require('prism-react-renderer/themes/github');
 const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
-const isDev = process.env.NODE_ENV === 'development';
+const host = process.env.VERCEL_ENV && process.env.VERCEL_ENV === 'preview' ? `https://${process.env.VERCEL_URL}` : 'https://macrometa.com';
+const isDev = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV;
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Macrometa',
   tagline: 'Macrometa GDN Documentation',
-  url: 'https://macrometa.com',
+  url: host,
   baseUrl: isDev ? '/' : '/docs/',
-  onBrokenLinks: 'error',
-  onBrokenMarkdownLinks: 'error',
+  onBrokenLinks: 'warn',
+  onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
   organizationName: 'macrometacorp', // Usually your GitHub org/user name.
   projectName: 'docs', // Usually your repo name.
@@ -29,8 +33,9 @@ const config = {
       '@docusaurus/preset-classic',
       {
         docs: {
-          //path: 'docs/main',
-          //id: 'default',
+          path: 'docs',
+          editUrl: ({ docPath }) =>
+            `https://github.com/macrometacorp/docs/edit/master/docs/${docPath}`,
           routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.js'),
           sidebarCollapsible: true,
@@ -40,13 +45,18 @@ const config = {
           changefreq: 'weekly',
           priority: 0.5,
         },
+        gtag: {
+          trackingID: process.env.GTAG_TRACKING_ID || "DEV",
+        },
       },
     ],
   ],
 
   plugins: [
+    redirectsPlugin,
     tailwindPlugin,
     webpackPlugin,
+    'posthog-docusaurus'
   ],
 
   themeConfig:
@@ -64,7 +74,7 @@ const config = {
         },
         {
           name: 'og:url',
-          content: 'https://macrometa.com/docs/'
+          content: `${host}/docs/`
         },
         {
           name: 'og:image',
@@ -73,10 +83,15 @@ const config = {
       ],
       algolia: {
         appId: 'GHXKYI4VEC', // public + read only and safe to commit
-        apiKey: '89c79be3419cb93594c775fa808715ee', // public + read only and safe to commit
+        apiKey: '91737ee0cdeab53f4cc7a1c650eee730', // public + read only and safe to commit
         indexName: 'prod_DOCS',
         contextualSearch: true,
         searchParameters: {},
+      },
+      posthog: {
+        apiKey: process.env.POSTHOG_API_KEY || "DEV",
+        appUrl: process.env.POSTHOG_API_URL || "https://posthog.prod.macrometa.io",
+        enableInDevelopment: false
       },
       navbar: {
         logo: {
@@ -99,14 +114,13 @@ const config = {
             href: '/api'
           },
           {
-            href: 'https://github.com/macrometacorp/',
+            href: 'https://github.com/macrometacorp/docs',
             label: 'GitHub',
             position: 'left',
           },
         ],
       },
       footer: {
-        style: 'dark',
         links: [
           {
             title: 'Docs',
@@ -116,8 +130,8 @@ const config = {
                 to: '/quickstart',
               },
               {
-                label: 'Essentials',
-                to: '/essentials/overview',
+                label: 'What is Macrometa',
+                to: '/what-is-macrometa',
               }
             ],
           },

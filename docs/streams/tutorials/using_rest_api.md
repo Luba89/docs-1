@@ -11,7 +11,7 @@ Today’s applications are required to be highly responsive and always online. T
 Macrometa global data network (GDN) is a fully managed realtime materialzed view engine that provides access to data instantly to Apps & APIs in a simple & single interface. 
 
 :::note
-If you are new to Macrometa GDN, we strongly recommend reading **[Essentials](../../essentials/overview.md)** of Macrometa GDN.
+If you are new to Macrometa GDN, we strongly recommend reading **[What is Macrometa](../../what-is-macrometa.md)**.
 :::
 ## Pre-Requiste
 
@@ -41,17 +41,18 @@ It provides,
 <TabItem value="js" label="Javascript">
 
 ```js
+const WebSocket = require('ws');
 class APIRequest {
   _headers = {
     Accept: "application/json",
-    "Content-Type": "application/json",
+    "Content-Type": "application/json"
   };
 
   constructor(url) {
     this._url = url;
   }
 
-  login(email, password) {
+  login (email, password) {
     const endpoint = "/_open/auth";
 
     const self = this;
@@ -60,7 +61,7 @@ class APIRequest {
       self
         .req(endpoint, {
           body: { email, password },
-          method: "POST",
+          method: "POST"
         })
         .then(({ jwt, ...data }) => {
           self._headers.authorization = `bearer ${jwt}`;
@@ -70,7 +71,7 @@ class APIRequest {
     });
   }
 
-  _handleResponse(response, resolve, reject) {
+  _handleResponse (response, resolve, reject) {
     if (response.ok) {
       resolve(response.json());
     } else {
@@ -78,64 +79,88 @@ class APIRequest {
     }
   }
 
-  req(endpoint, { body, ...options } = {}) {
+  req (endpoint, { body, ...options } = {}) {
     const self = this;
     return new Promise(function (resolve, reject) {
       fetch(self._url + endpoint, {
         headers: self._headers,
         body: body ? JSON.stringify(body) : undefined,
-        ...options,
+        ...options
       }).then((response) => self._handleResponse(response, resolve, reject));
     });
   }
 }
 
-const EMAIL = "nemo@nautilus.com";
-const PASSWORD = "xxxxxx";
-const FEDERATION_NAME = api-gdn.paas.macrometa.io";
-const FEDERATION_URL = `https://${FEDERATION_NAME}`;
+const email = "nemo@nautilus.com";
+const password = "xxxxxx";
+const federationName = "api-gdn.paas.macrometa.io";
+const federationUrl = `https://${federationName}`;
 
-const STREAM_NAME = "api_tutorial_streams";
-const CONSUMER_NAME = "api_tutorial_streams_consumer";
-const IS_GLOBAL = true;
+const stream = "api_tutorial_streams";
+const consumerName = "api_tutorial_streams_consumer";
+const isGlobal = true;
 
 const run = async function () {
   try {
-    const connection = new APIRequest(FEDERATION_URL);
+    const connection = new APIRequest(federationUrl);
 
-    /* -------------------- Login (nemo@nautilus.com/xxxxxx) -------------------- */
+    /* -------------------- Log in (nemo@nautilus.com/xxxxxx) -------------------- */
 
-    const { tenant } = await connection.login(EMAIL, PASSWORD);
+    const { tenant } = await connection.login(email, password);
 
     console.log("Login Successfully using", tenant);
-    /* ------------------------------ Create Stream ----------------------------- */
+    /* ------------------------------ Create stream ----------------------------- */
 
-    const stream = await connection.req(
-      `/_fabric/_system/streams/${STREAM_NAME}?global=${IS_GLOBAL}`,
-      {
-        body: { name: STREAM_NAME },
-        method: "POST",
+    try {
+      await connection.req(
+        `/_fabric/_system/streams/${stream}?global=${isGlobal}`,
+        {
+          body: { name: stream },
+          method: "POST"
+        }
+      );
+      console.log("Stream created successfully");
+    } catch (e) {
+      if (e.status === 409) {
+        console.log("Stream already exists, skipping creation of stream");
+      } else {
+        console.log("Error while creating stream");
+        throw e;
       }
-    );
+    }
 
-    console.log("STREAM CREATED SUCCESSFULLY", stream);
+    /* ----------------- Publish and subscribe message to stream ---------------- */
 
-    /* ----------------- Publish and Subscribe message to stream ---------------- */
+    const region = isGlobal ? "c8global" : "c8local";
+    const streamName = `${region}s.${stream}`;
 
-    const region = IS_GLOBAL ? "c8global" : "c8local";
-    const streamName = `${region}s.${STREAM_NAME}`;
-    const url = IS_GLOBAL
-      ? FEDERATION_NAME : `api-${streamApp.streamApps[0].regions[0]}.prod.macrometa.io`
+    // Fetching local URL in case the stream is local
+    const localDcDetails = await connection.req(`/datacenter/local`, {
+      method: "GET"
+    });
 
-    const consumerUrl = `wss://${url}/_ws/ws/v2/consumer/persistent/${tenant}/${region}._system/${streamName}/${CONSUMER_NAME}`;
+    const dcUrl = localDcDetails.tags.url;
 
-    const producerUrl = `wss://${url}/_ws/ws/v2/producer/persistent/${tenant}/${region}._system/${streamName}`;
+    const url = isGlobal
+      ? federationName
+      : `api-${dcUrl}`;
 
-    var consumer;
-    var producer;
-    var producer_interval;
+    const otpConsumer = await connection.req(`/apid/otp`, {
+      method: "POST"
+    });
+    const otpProducer = await connection.req(`/apid/otp`, {
+      method: "POST"
+    });
 
-    /* -------------------------- Initalizing Consumer -------------------------- */
+    const consumerUrl = `wss://${url}/_ws/ws/v2/consumer/persistent/${tenant}/${region}._system/${streamName}/${consumerName}?otp=${otpConsumer.otp}`;
+
+    const producerUrl = `wss://${url}/_ws/ws/v2/producer/persistent/${tenant}/${region}._system/${streamName}?otp=${otpProducer.otp}`;
+
+    let consumer;
+    let producer;
+    let producerInterval;
+
+    /* -------------------------- Initalizing consumer -------------------------- */
 
     const initConsumer = () => {
       return new Promise((resolve) => {
@@ -158,7 +183,7 @@ const run = async function () {
         };
 
         consumer.onmessage = function (message) {
-          var receivedMsg = message.data && JSON.parse(message.data);
+          const receivedMsg = message.data && JSON.parse(message.data);
 
           console.log(
             `WebSocket:Consumer message received at ${new Date()}`,
@@ -178,7 +203,7 @@ const run = async function () {
 
       producer.onopen = function () {
         console.log("WebSocket:Producer is open now for " + streamName);
-        producer_interval = setInterval(function () {
+        producerInterval = setInterval(function () {
           console.log(`WebSocket:Producer message sent at ${new Date()}`);
           producer.send(JSON.stringify({ payload: `test` }));
         }, 10000);
@@ -186,7 +211,7 @@ const run = async function () {
 
       producer.onclose = function (e) {
         console.log("Closed WebSocket:Producer connection for " + streamName);
-        clearInterval(producer_interval);
+        clearInterval(producerInterval);
       };
 
       producer.onerror = function (e) {
@@ -201,28 +226,22 @@ const run = async function () {
     });
 
     await new Promise((resolve) => setTimeout(resolve, 1 * 40 * 1000));
-
     consumer.close();
     console.log("CONSUMER CLOSING...");
     producer.close();
     console.log("PRODUCER CLOSING...");
-
     await new Promise((resolve) => setTimeout(resolve, 5000));
-
-    /* ------------------------ Unsubscribe from stream. ------------------------ */
-
+    /* ------------------------ Unsubscribe from stream ------------------------ */
     const consumerUnsubscribe = await connection.req(
-      `/_fabric/_system/_api/streams/unsubscribe/${CONSUMER_NAME}`,
+      `/_fabric/_system/_api/streams/subscription/${consumerName}`,
       {
-        method: "POST",
+        method: "DELETE"
       }
     );
-
     console.log(
-      `${CONSUMER_NAME} UNSUBSCRIBED SUCCESSFULLY`,
+      `${consumerName} unsubscribed successfully`,
       consumerUnsubscribe
     );
-
     /* ------------------------------ Delete topic ------------------------------ */
   } catch (e) {
     console.error(e);
@@ -245,8 +264,8 @@ import six
 
 # Constants
 
-FEDERATION = "gdn.paas.macrometa.io"
-FED_URL = "https://api-{}".format(FEDERATION)
+FEDERATION = "api-gdn.paas.macrometa.io"
+FED_URL = f"https://{FEDERATION}"
 EMAIL = "nemo@nautilus.com"
 PASSWORD = "xxxxxx"
 FABRIC = "_system"
@@ -255,82 +274,81 @@ AUTH_TOKEN = "bearer "
 TENANT_NAME = "xxxxxx"
 CONSUMER_NAME = "testconsumer"
 
-
 # Create a HTTPS Session
 
-url = "{}/_open/auth".format(FED_URL)
+url = f"{FED_URL}/_open/auth"
 payload = {
-    'email':EMAIL,
-    'password':PASSWORD
-    }
+    'email': EMAIL,
+    'password': PASSWORD
+}
 headers = {
     'content-type': 'application/json'
-    }
+}
 
-response = requests.post(url, data = json.dumps(payload), headers = headers)
+response = requests.post(url, data=json.dumps(payload), headers=headers)
 
 if response.status_code == 200:
     resp_body = json.loads(response.text)
     AUTH_TOKEN += resp_body["jwt"]
     TENANT = resp_body["tenant"]
 else:
-    raise Exception("Error while getting auth token. Code:{}, Reason:{}".format(response.status_code,response.reason))
-
+    raise Exception(f"Error while getting auth token. Code:{response.status_code}, Reason:{response.reason}")
 
 session = requests.session()
 session.headers.update({"content-type": 'application/json'})
 session.headers.update({"authorization": AUTH_TOKEN})
 
+
 # Create a stream
 # Note:- For a global stream pass global=true and global=false for local stream
-url = FED_URL + "/_fabric/" + FABRIC + "/streams/" + STREAM_NAME + "?global=true"
+url = f"{FED_URL}/_fabric/{FABRIC}/_api/streams/{STREAM_NAME}?global=true"
 resp = session.post(url)
 print("\nStream Created: ", resp.text)
 
 # Publish Messages
 # Send message in body
-url = FED_URL + "/_fabric/" + FABRIC + "/streams/" + STREAM_NAME + "/publish?global=true"
-resp = session.post(url)
-print("\nStream Created: ", resp.text)
+STREAM_TYPE = "c8global"
+
+url = f"{FED_URL}/_fabric/{FABRIC}/_api/streams/{STREAM_TYPE}s.{STREAM_NAME}/publish?global=true"
+resp = session.post(url, data="Hello")
+print("\nMessage Posted: ", resp.text)
 
 # or
 
-stream_type = "c8local"
-producerurl = "wss://" + FEDERATION + "/_ws/ws/v2/producer/persistent/" + TENANT_NAME +\
-                "/" + stream_type + "." + FABRIC + "/" + stream_type + "s." + STREAM_NAME
+producerurl = f"wss://{FEDERATION}/_ws/ws/v2/producer/persistent/{TENANT_NAME}/{STREAM_TYPE}.{FABRIC}/{STREAM_TYPE}s.{STREAM_NAME}"
 
-ws = create_connection(producerurl)
+
+ws = create_connection(producerurl, header=[f"Authorization: {AUTH_TOKEN}"])
 payload = {
-                "payload": base64.b64encode(
-                    six.b("Hello World")
-                ).decode("utf-8")
-            }
+    "payload": base64.b64encode(
+        six.b("Hello World")
+    ).decode("utf-8")
+}
 ws.send(json.dumps(payload))
 response = json.loads(ws.recv())
 if response['result'] == 'ok':
-    print('Message published successfully')
+    print("Message published successfully")
 else:
-    print('Failed to publish message:', response)
+    print(f"Failed to publish message: {response}")
 ws.close()
 
-# Subscribe
+# # # Subscribe
 
-consumerurl = "wss://" + FEDERATION + "/_ws/ws/v2/consumer/persistent/" + TENANT_NAME +\
-                "/" + stream_type + "." + FABRIC + "/" + stream_type + "s." + STREAM_NAME +\
-                "/" + CONSUMER_NAME
-ws = create_connection(consumerurl)
+consumerurl = f"wss://{FEDERATION}/_ws/ws/v2/producer/persistent/{TENANT_NAME}/{STREAM_TYPE}.{FABRIC}/{STREAM_TYPE}s.{STREAM_NAME}/{CONSUMER_NAME}"
+
+ws = create_connection(consumerurl, header=[f"Authorization: {AUTH_TOKEN}"])
 while True:
     msg = json.loads(ws.recv())
     if msg:
-        print("received: {}".format(base64.b64decode(msg['payload'])))
+        print(f"received: {base64.b64decode(msg['payload'])}")
         # Acknowledge successful processing
         ws.send(json.dumps({'messageId': msg['messageId']}))
         break
 ws.close()
 
 # Delete Subscription/ Unsubscribe
-url = FED_URL + "/_api/streams/unsubscribe/" + CONSUMER_NAME
-resp = session.post(url, data = json.dumps(payload))
+url = f"{FED_URL}/_fabric/{FABRIC}/_api/streams/{STREAM_TYPE}s.{STREAM_NAME}/subscriptions/{CONSUMER_NAME}?global=true"
+resp = session.delete(url)
 print("Subsrcription Deleted: ", resp.text)
 ```
 

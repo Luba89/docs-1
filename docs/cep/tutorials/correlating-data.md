@@ -173,7 +173,7 @@ from every (e1=ProductionStream) -> e2=ProductionStream[e1.productName == e2.pro
 
 ## Find non-occurrence of events
 
-This section explains how to analyze data by observing scenarios where events do not occur. To understand how this is done, consider a taxi service company that tracks the movements of the taxis it runs and wants to be notified of unexpected delays. Consider a specific scenario where the manager needs to contact the driver if the taxi has not reached either of two specified locations within 15 minutes. For this, you can create a stream application as follows:
+This section explains how to analyze data by observing scenarios where events do not occur. To understand how this is done, consider a taxi service company that tracks the movements of the taxis it runs and wants to be notified of unexpected delays. Consider a specific scenario where the manager needs to contact SDK if the taxi has not reached either of two specified locations within 15 minutes. For this, you can create a stream application as follows:
 
 1. Start creating a new stream application and add the QL version. You can name it `DelayDetectionApp` For instructions, see [Creating a Stream Application](create-stream-app.md).
     ```sql
@@ -234,7 +234,7 @@ select LocationStream.taxiID, LocationStream.driverID, 'Unexpected Delay' as mes
 from not LocationStream[latitude == 44.0096 and longitude == 81.2735] for 15 minutes or not LocationStream[latitude == 43.0096 and longitude == 81.2737] for 15 minutes;
 ```
 
-For the complete list of methods in which you can apply patterns to detect non occuring events, see [Stream Query Guide - Detecting Non-Occurring Events](../reference/query-guide#detecting-non-occurring-events).
+For the complete list of methods in which you can apply patterns to detect non occuring events, see [Stream Query Guide - Detecting Non-Occurring Events](../query-guide/query.md#detecting-non-occurring-events).
 
 ## Correlating events to find a trend(sequence)
 

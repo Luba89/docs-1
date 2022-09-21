@@ -22,20 +22,20 @@ For all queries, version 2 replaces annotations such as `@sink` and `@source` ar
 
 Refer to the following sections for more details:
 
-* [Key Words and Types](#key-words-and-types)
-* [Define Streams](#define-streams)
-* [Define Tables](#define-tables)
-* [Define Trigger](#define-trigger)
-* [Define Sinks](#define-sinks)
-* [Define Sources](#define-sources)
-* [Define Stores](#define-stoes)
-* [Define Named Windows](#define-named-windows)
-* [Define Functions](#define-functions)
-* [Define Stream As Select](#define-stream-as-select)
-* [Define Table As Select](#define-table-as-select)
-* [Query Order](#query-order)
-* [Windows in Queries](#windows-in-queries)
-* [WHERE Clauses](#where-clauses)
+- [Key Words and Types](#key-words-and-types)
+- [Define Streams](#define-streams)
+- [Define Tables](#define-tables)
+- [Define Trigger](#define-trigger)
+- [Define Sinks](#define-sinks)
+- [Define Sources](#define-sources)
+- [Define Stores](#define-stores)
+- [Define Named Windows](#define-named-windows)
+- [Define Functions](#define-functions)
+- [Define Stream As Select](#define-stream-as-select)
+- [Define Table As Select](#define-table-as-select)
+- [Query Order](#query-order)
+- [Windows in Queries](#windows-in-queries)
+- [WHERE Clauses](#where-clauses)
 
 ### Key Words and Types
 
@@ -84,6 +84,8 @@ Additionally, the following key words are added for more granular querying:
     CREATE SINK STREAM ExampleStreamSink (data string);
     ```
 
+Refer to [Stream](../query-guide/stream.md) for more information.
+
 
 ### Define Tables
 
@@ -101,6 +103,8 @@ Tables no longer require `@sink` or `@source` annotations.
     ```sql
     CREATE TABLE ExampleTable (data string);
     ```
+
+Refer to [Table (Collection)](../query-guide/table-collection.md) for more information.
 
 
 
@@ -122,6 +126,9 @@ Tables no longer require `@sink` or `@source` annotations.
     CREATE TRIGGER WorkStartTrigger WITH (expression = '0 15 10 ? * MON-FRI');
     ```
 
+Refer to [Trigger](../query-guide/trigger.md) for more information.
+
+
 ### Define Sinks
 
 * Version 1:
@@ -136,6 +143,9 @@ Tables no longer require `@sink` or `@source` annotations.
     ```sql
     CREATE SINK restqlStream WITH (type='query-worker', query.worker.name="restqlExample") (startTime string);
     ```
+
+Refer to [Sink](../query-guide/stream.md#sink) for more information.
+
 
 ### Define Sources
 
@@ -152,6 +162,8 @@ Tables no longer require `@sink` or `@source` annotations.
     ```sql
     CREATE SOURCE ExampleInputTableStream WITH (type = 'database', collection = "ExampleInputTable", map.type='json')(data string);
     ```
+
+Refer to [Source](../query-guide/stream.md#source) for more information.
 
 ### Define Stores
 
@@ -173,6 +185,8 @@ Tables no longer require `@sink` or `@source` annotations.
 
     ```
 
+Refer to [Store](../query-guide/store.md) for more information.
+
 ### Define Named Windows
 
 * Version 1:
@@ -186,6 +200,8 @@ Tables no longer require `@sink` or `@source` annotations.
     ```sql
     CREATE WINDOW SensorWindow (deviceID string, value float, roomNo int) TUMBLING_TIME(1 second);
     ```
+
+Refer to [Named Window](../query-guide/named-window.md) for more information.
 
 ### Define Functions
 
@@ -215,6 +231,8 @@ Tables no longer require `@sink` or `@source` annotations.
 
     ```
 
+Refer to [Function](../query-guide/query.md#function) for more information.
+
 ### Define Stream As Select
 
 * Version 1:
@@ -234,6 +252,10 @@ Tables no longer require `@sink` or `@source` annotations.
     FROM InputStream[price > 500] WINDOW SLIDING_LENGTH(1);
     ```
 
+Refer to [Select](../query-guide/query.md#select) for more information.
+
+
+
 ### Define Table As Select
 
 * Version 1:
@@ -252,6 +274,8 @@ Tables no longer require `@sink` or `@source` annotations.
     AS SELECT symbol, price, volume
     FROM InputStream[price > 500] WINDOW SLIDING_LENGTH(1);
     ```
+
+Refer to [Select](../query-guide/query.md#select) for more information.
 
 ### Query Order
 
@@ -278,6 +302,8 @@ For example:
     SELECT symbol, price, volume
     FROM InputStream[price > 500] WINDOW SLIDING_LENGTH(1);
     ```
+
+
 
 ### Windows in Queries
 
@@ -314,6 +340,8 @@ The following table shows the version 1 and version 2 window names:
 | #window.expression()          | WINDOW SLIDING_EXPRESSION()   |
 | #window.expressionBatch()     | WINDOW TUMBLING_EXPRESSION()  |
 
+Refer to [Window](../query-guide/query.md#window) for more information.
+
 ### WHERE Clauses
 
 The `WHERE` clause is an alternative to the `HAVING` clause.
@@ -336,5 +364,3 @@ The `WHERE` clause is an alternative to the `HAVING` clause.
     FROM TempStream WINDOW SLIDING_TIME(10 min)
     WHERE avgTemp > 30;
     ```
-
-

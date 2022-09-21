@@ -6,23 +6,29 @@ title: Quickstart
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-## Overview
+This article is an introduction to using streams with [pyC8](https://pyc8.readthedocs.io/en/latest/) and [jsC8](https://www.npmjs.com/package/jsc8) SDKs.
 
-Globally distributed applications need a geo distributed fast data platform that can transparently replicate the data anywhere in the world to enable the applications to operate on a copy of the data that's close to its users. Similarly the applications need geo-replicated as well as local streams to handle pub-sub, ETL and real-time updates from the fast data platform.
+Streams are a type of collection in GDN to capture `data-in-motion`. Messages are sent via streams by publishers to consumers who then do something with the message. Streams can be created via client SDKs (pyC8, jsC8), REST API or the web console.
 
-Macrometa global data network (GDN) is a fully managed realtime materialzed view engine that provides access to data instantly to Apps & APIs in a simple & single interface.  
+Streams unifies `queuing` and `pub-sub messaging` into a unified messaging model that provides a lot of flexibility to users to consume messages in a way that is best for the use case at hand.
 
-This article is an introduction to using streams with [pyC8](https://pyc8.readthedocs.io/en/latest/) and [jsC8](https://www.npmjs.com/package/jsc8) drivers.
+> producer --> stream --> subscription --> consumer
 
-GDN streams are a high-performance solution for server-to-server messaging. It provides,
+A stream is a named channel for sending messages. Each stream is backed by a `distributed append-only` log and can be `local` (at one edge location only) or `global` (across all edge locations in the Fabric).
 
-- Seamless geo-replication of messages across regions,
-- Very low publish and end-to-end latency,
-- Seamless scalability to over a million topics.
-- Multiple subscription modes (`exclusive`, `shared`, and `failover`) for streams.
-- Guaranteed message delivery with persistent message storage.
+Messages from publishers are only stored once on a stream, and can be consumed as many times as necessary by consumers. The stream is the source of truth for consumption. Although messages are only stored once on the stream, there can be different ways of consuming these messages.
 
-`Streams` are built on the _publish-subscribe_ pattern, aka pub-sub. In this pattern, producers publish messages to streams. Consumers can then subscribe to those streams, process incoming messages, and send an acknowledgement when processing is complete.
+Consumers are grouped together for consuming messages. Each group of consumers is a subscription on a stream. Each consumer group can have its own way of consuming the messages: exclusively, shared, or failover.
+
+Streams provide:
+
+- Seamless geo-replication of messages across regions
+- Very low publish and end-to-end latency
+- Seamless scalability to over a million topics
+- Multiple subscription modes (`exclusive`, `shared`, and `failover`) for streams
+- Guaranteed message delivery with persistent message storage
+
+Streams are built on the *publish-subscribe* pattern, aka pub-sub. In this pattern, producers publish messages to streams. Consumers can then subscribe to those streams, process incoming messages, and send an acknowledgement when processing is complete.
 
 Once a subscription has been created, all messages will be retained by Streams, even if the consumer gets disconnected Retained messages will be discarded only when a consumer acknowledges that they've been successfully processed.
 
@@ -38,14 +44,11 @@ Messages are the basic "unit" of Streams. They're what producers publish to stre
 | Publish Time         | The timestamp of when the message was published (automatically applied by the producer) |
 | Event Time           | An optional timestamp that applications can attach to the message representing when something happened, e.g. when the message was processed. The event time of a message is 0 if none is explicitly set. |
 
-:::note
-If you are new to Macrometa GDN, we strongly recommend reading **[Essentials](../essentials/overview.md)** of Macrometa GDN.
-:::
-## Pre-requisite
+## Credentials
 
-Let's assume your
+Assume the following credentials:
 
-- tenant name is `nemo@nautilus.com` and
+- tenant name is `nemo@nautilus.com`.
 - user password is `xxxxxx`.
 
 ## Installation
@@ -60,7 +63,7 @@ With Yarn or NPM
     (or)
     npm install jsc8
 
-If you want to use the driver outside of the current directory, you can also install it globally using the `--global` flag:
+If you want to use the SDK outside of the current directory, you can also install it globally using the `--global` flag:
 
     npm install --global jsc8
 
@@ -120,16 +123,24 @@ const client = new jsc8("https://gdn.paas.macrometa.io");
 <TabItem value="py" label="Python">
 
 ```py
+from operator import concat
+import base64
+import json
+import warnings
 from c8 import C8Client
+import six
+warnings.filterwarnings("ignore")
+
+URL = "gdn.paas.macrometa.io"
+GEO_FABRIC = "_system"
+API_KEY = "my API key" #Change this to my API key
 
 print("--- Connecting to C8")
-# Simple Way
-client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
-                        email='nemo@nautilus.com', password='xxxxx',
-                        geofabric='_system')
+## Simple Way
+client = C8Client(protocol='https', host=URL, port=443, apikey = API_KEY, geofabric = GEO_FABRIC)
 
-# To use advanced options
-client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443)
+## To use advanced options
+#client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443)
 ```
 
 </TabItem>
@@ -174,10 +185,6 @@ getFabric();
 <TabItem value="py" label="Python">
 
 ```py
-from c8 import C8Client
-client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
-                        email='nemo@nautilus.com', password='xxxxx',
-                        geofabric='_system')
 print("Get geo fabric details...")
 print(client.get_fabric_details())
 ```
@@ -235,17 +242,26 @@ streams();
 <TabItem value="py" label="Python">
 
 ```py
-from c8 import C8Client
+prefixText = ""
+prefixBool = False
+demo_stream = 'streamQuickstart'
+    
+# Get the right prefix for the stream
+if prefixBool:
+    prefixText = "c8locals."
+else:
+    prefixText = "c8globals."
 
-print("--- Connecting to C8")
-client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
-                        email='nemo@nautilus.com', password='xxxxx',
-                        geofabric='_system')
 
-demo_stream = 'demostream'  #Name of the Stream
-
-print(client.create_stream(demo_stream, local=False))
-print(client.create_stream(demo_stream, local=True))
+streamName = {"stream-id": ""}
+if client.has_stream(demo_stream, local = prefixBool):
+    print("Stream already exists")
+    streamName["stream-id"] = concat(prefixText, demo_stream)
+    print ("OLD Producer =",  streamName["stream-id"])
+else:
+    #print(client.create_stream(demo_stream, local=prefixBool))
+    streamName = client.create_stream(demo_stream, local=prefixBool)
+    print ("NEW Producer =",  streamName["stream-id"])
 
 print("Get Streams: ", client.get_streams())
 ```
@@ -288,13 +304,15 @@ async function streams() {
       const stream = client.stream("my-stream", true);
       await stream.createStream();
 
-      const producer = stream.producer("test.macrometa.io");
-
+      const producerOTP = await stream.getOtp();
+      const producer = await stream.producer("gdn.paas.macrometa.io", {
+        otp: producerOTP,
+    });
       producer.on("open", () => {
         // If you message is an object, convert the obj to string.
         // e.g. const message = JSON.stringify({message:'Hello World'});
         const message = "Hello World";
-        const payloadObj = { payload: Buffer.from(str).toString("base64") };
+        const payloadObj = { payload: Buffer.from(message).toString("base64") };
         producer.send(JSON.stringify(payloadObj));
       });
 
@@ -317,28 +335,14 @@ streams()
 <TabItem value="py" label="Python">
 
 ```py
-from c8 import C8Client
-import time
-import base64
-import six
-import json
-import warnings
-warnings.filterwarnings("ignore")
-
-print("--- Connecting to C8")
-client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
-                        email='nemo@nautilus.com', password='xxxxx',
-                        geofabric='_system')
-#--------------------------------------------------------------
-print("publish messages to stream...")
-producer = client.create_stream_producer("demostream", local=False)
-
+producer = client.create_stream_producer(demo_stream, local=prefixBool)
 for i in range(10):
-      msg1 = "Persistent: Hello from " + "("+ str(i) +")"
-      data = {
+    msg1 = "Persistent Hello from " + "("+ str(i) +")"
+    data = {
         "payload" : base64.b64encode(six.b(msg1)).decode("utf-8")
-      }
-      producer.send(json.dumps(data))
+    }
+    print("Stream: ", msg1)
+    print(producer.send(json.dumps(data)))
 ```
 
 </TabItem>
@@ -393,32 +397,105 @@ async function getDCList() {
 <TabItem value="py" label="Python">
 
 ```py
-  from c8 import C8Client
-  import time
-  import base64
-  import six
-  import json
-  import warnings
-  warnings.filterwarnings("ignore")
-
-  print("--- Connecting to C8")
-  # Simple Way
-  client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
-                          email='nemo@nautilus.com', password='xxxxx',
-                          geofabric='_system')
-  #--------------------------------------------------------------
-
-  subscriber = client.subscribe(stream="demostream", local=False, subscription_name="test-subscription-1")
-  for i in range(10):
-      print("In ",i)
-      m1 = json.loads(subscriber.recv())  #Listen on stream for any receiving msg's
-      msg1 = base64.b64decode(m1["payload"])
-      print("Received message '{}' id='{}'".format(msg1, m1["messageId"])) #Print the received msg over stream
-      subscriber.send(json.dumps({'messageId': m1['messageId']}))#Acknowledge the received msg.
+subscriber = client.subscribe(stream=demo_stream, local=prefixBool,
+    subscription_name="test-subscription-1")
+for i in range(10):
+    print("In ",i)
+    m1 = json.loads(subscriber.recv())  # Listen on stream for any receiving messages
+    msg1 = base64.b64decode(m1["payload"])
+    print(F"Received message '{msg1}' id='{m1['messageId']}'") # Print the received message
+    subscriber.send(json.dumps({'messageId': m1['messageId']})) # Acknowledge the received message
 ```
 
 </TabItem>
-</Tabs>  
+</Tabs>
+
+
+## Full demo quickstart file
+
+<Tabs groupId="operating-systems">
+<TabItem value="py" label="Python"> 
+
+```py
+""" This file is a demo to send data to/from a stream """
+from operator import concat
+import base64
+import json
+import warnings
+from c8 import C8Client
+import six
+warnings.filterwarnings("ignore")
+
+URL = "gdn.paas.macrometa.io"
+GEO_FABRIC = "_system"
+API_KEY = "my API key" # Change this to your API key
+prefixText = ""
+prefixBool = False
+demo_stream = 'streamQuickstart'
+
+client = C8Client(protocol='https', host=URL, port=443, apikey = API_KEY, geofabric = GEO_FABRIC)
+
+# Get the right prefix for the stream
+if prefixBool:
+    prefixText = "c8locals."
+else:
+    prefixText = "c8globals."
+
+
+def createStream():
+    """ This function creates a stream """
+    streamName = {"stream-id": ""}
+    if client.has_stream(demo_stream, local = prefixBool):
+        print("Stream already exists")
+        streamName["stream-id"] = concat(prefixText, demo_stream)
+        print ("OLD Producer =",  streamName["stream-id"])
+    else:
+        #print(client.create_stream(demo_stream, local=prefixBool))
+        streamName = client.create_stream(demo_stream, local=prefixBool)
+        print ("NEW Producer =",  streamName["stream-id"])
+
+# Creating the producer and sending data
+def sendData():
+    """ This function sends data through a stream """
+    producer = client.create_stream_producer(demo_stream, local=prefixBool)
+    for i in range(10):
+        msg1 = "Persistent Hello from " + "("+ str(i) +")"
+        data = {
+            "payload" : base64.b64encode(six.b(msg1)).decode("utf-8")
+        }
+        print("Stream: ", msg1)
+        print(producer.send(json.dumps(data)))
+
+
+# Creating the subscriber and receiving data
+def receiveData():
+    """ This function receives data from a stream """
+    subscriber = client.subscribe(stream=demo_stream, local=prefixBool,
+        subscription_name="test-subscription-1")
+    for i in range(10):
+        print("In ",i)
+        m1 = json.loads(subscriber.recv())  # Listen on stream for any receiving messages
+        msg1 = base64.b64decode(m1["payload"])
+        print(F"Received message '{msg1}' id='{m1['messageId']}'") # Print the received message
+        subscriber.send(json.dumps({'messageId': m1['messageId']})) # Acknowledge the received message
+
+
+createStream()
+
+
+# Select choice
+user_input = input("Type 'w' or '1' to write data. Type 'r' or '0' to read data: ")
+if user_input == "w" or user_input == '1':
+    sendData()
+elif user_input == "r" or user_input == '0':
+    receiveData()
+else:
+    print ("Invalid user input. Stopping program")
+```
+
+</TabItem>
+</Tabs>
+
 
 ## Auto Reconnect streams
 
@@ -693,7 +770,8 @@ var producer;
 </TabItem>
 </Tabs>  
 
-## Pub-Sub with streams in browser
+
+## Pub-Sub with Streams in Browser
 
 Example to publish messages on a stream and subscribe to that stream to receive messages, with a simple UI
 
@@ -710,11 +788,11 @@ Example to publish messages on a stream and subscribe to that stream to receive 
     />
     <link
       rel="stylesheet"
-      href="//cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.css"
     />
     <link
       rel="stylesheet"
-      href="//cdnjs.cloudflare.com/ajax/libs/milligram/1.3.0/milligram.css"
+      href="https://cdnjs.cloudflare.com/ajax/libs/milligram/1.3.0/milligram.css"
     />
     <style rel="stylesheet">
       #console {
@@ -902,37 +980,54 @@ Example to publish messages on a stream and subscribe to that stream to receive 
 
         const { tenant } = await connection.login(EMAIL, PASSWORD);
 
-        print("Login Successfully using");
+        print("Login Successfully using " + tenant);
         /* ------------------------------ Create Stream ----------------------------- */
 
-        const stream = await connection.req(
-          `/_fabric/_system/streams/${STREAM_NAME}?global=${IS_GLOBAL}`,
-          {
-            body: { name: STREAM_NAME },
-            method: "POST",
+        try {
+          const stream = await connection.req(
+            `/_fabric/_system/streams/${STREAM_NAME}?global=${IS_GLOBAL}`,
+            {
+              body: { name: STREAM_NAME },
+              method: "POST",
+            }
+          );
+          print("STREAM CREATED SUCCESSFULLY");
+        } catch (e) {
+          if (e.status == 409) {
+            print("Stream already exists, skipping creation of stream");
           }
-        );
-
-        print("STREAM CREATED SUCCESSFULLY");
+          else {
+            print("Error while creating stream");
+            throw e;
+          }
+        }
 
         /* ----------------- Publish and Subscribe message to stream ---------------- */
 
         const region = IS_GLOBAL ? "c8global" : "c8local";
         const streamName = `${region}s.${STREAM_NAME}`;
 
-        // FOR gdn use the below snippet
-        // const url = IS_GLOBAL
-        // ? FEDERATION_NAME;
-        // : `api-${streamApp.streamApps[0].regions[0]}.prod.macrometa.io`
+        // Fetching local URL in case the stream is local
+        const localDcDetails = await connection.req(`/datacenter/local`, {
+          method: "GET",
+        });
 
-        // #URL_REVIEW : If you have changed your FEDERATION_NAME please review the below code and make required changes to the URL
+        const dcUrl = localDcDetails.tags.url;
+
         const url = IS_GLOBAL
-          ? FEDERATION_NAME;
-          : `api-${streamApp.streamApps[0].regions[0]}.macrometa.io`
+          ? FEDERATION_NAME
+          : `api-${dcUrl}`;
 
-        const consumerUrl = `wss://${url}/_ws/ws/v2/consumer/persistent/${tenant}/${region}._system/${streamName}/${CONSUMER_NAME}`;
+        const otpConsumer = await connection.req(`/apid/otp`, {
+          method: "POST",
+        });
+        const otpProducer = await connection.req(`/apid/otp`, {
+          method: "POST",
+        });
 
-        const producerUrl = `wss://${url}/_ws/ws/v2/producer/persistent/${tenant}/${region}._system/${streamName}`;
+        const consumerUrl = `wss://${url}/_ws/ws/v2/consumer/persistent/${tenant}/${region}._system/${streamName}/${CONSUMER_NAME}?otp=${otpConsumer.otp}`;
+
+        const producerUrl = `wss://${url}/_ws/ws/v2/producer/persistent/${tenant}/${region}._system/${streamName}?otp=${otpProducer.otp}`;
 
         /* -------------------------- Initalizing Consumer -------------------------- */
 

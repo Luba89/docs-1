@@ -15,8 +15,12 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Source Sans"', defaultTheme.fontFamily.sans],
-        mono: ['"Fira Code"', defaultTheme.fontFamily.mono],
+        body: ['"Open Sans"', defaultTheme.fontFamily.body],
+        display: ['"Lato"', defaultTheme.fontFamily.display],
+        mono: ['"Source Code Pro"', defaultTheme.fontFamily.mono],
+      },
+      fontSize: {
+        'base': '0.9375rem'
       },
       screens: {
         lg: '997px',

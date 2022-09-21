@@ -1,5 +1,5 @@
 ---
-sidebar_position: 4
+sidebar_position: 50
 title: Using AWS Boto3
 ---
 
@@ -196,7 +196,7 @@ def update_movie(dynamodb=None):
                 ":r": {"N":"5.5"},
                 ":p": {"S":"Everything happens all at once."},
             },
-            ReturnValues= "UPDATED_OLD"
+            ReturnValues= "ALL_NEW"
         )
         print("Update movie: ", resp)
 

@@ -1,81 +1,35 @@
 ---
+title: Graph Edge Quickstart
 sidebar_position: 1
-title: Quickstart
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
-## Overview
+This article is an introduction to working with documents in GDN with [pyC8](https://pyc8.readthedocs.io/en/latest/) and [jsC8](https://www.npmjs.com/package/jsc8) SDKs.
 
-Today’s applications are required to be highly responsive and always online. They need to be deployed in datacenters closer to their users and can access data instantly across the globe. 
+_Graphs_ enable you to group your data and perform more powerful queries across connected documents. A graph consists of _vertices_ and _edges_. Vertices are stored in collections and linked by an edge document. Edges are stored as documents in edge collections, and vertices can be a document or an edge.
 
-Macrometa global data network (GDN) is a fully managed realtime materialzed view engine that provides access to data instantly to Apps & APIs in a simple & single interface. 
+The _edge definition_ determines which collections are used in a named graph. A named graph must contain at least one edge definition.
 
-This article is an introduction to working with documents in GDN with [pyC8](https://pyc8.readthedocs.io/en/latest/) and [jsC8](https://www.npmjs.com/package/jsc8) drivers.
+ You can turn documents into graph structures for semantic queries with nodes, edges, and properties. Graphs directly connect data items between different collections. You can use graphs to refer to documents in different tables without a nested join. Graphs can also find patterns of document connections, such as the shortest path between two vertices in a graph.
 
-In the drivers, a **document** is a dictionary/object that is JSON serializable with the following properties:
+Edges in one edge collection may point to several vertex collections. You can add attributes to edges to do things like labelling connections.
 
-* Contains the `_key` field, which identifies the document uniquely within a specific collection.
-* Contains the `_id` field (also called the handle), which identifies the document uniquely across all collections within a fabric. This ID is a combination of the collection name and the document key using the format `{collection}/{key}` (see example below).
-* Contains the `_rev` field. GDN supports MVCC (Multiple Version Concurrency Control) and is capable of storing each document in multiple revisions. Latest revision of a document is indicated by this field. The field is populated by GDN and is not required as input unless you want to validate a document against its current revision.
+Edges have a direction, with their relations `_from` and `_to` pointing from one document to another document stored in vertex collections. In queries you can define in which directions the edge relations may be followed:
 
-Here is an example of a valid document:
+- OUTBOUND: `_from` → `_to`
+- INBOUND: `_from` ← `_to`
+- ANY: `_from` ↔ `_to`.
 
-```json
-    {
-        '_id': 'students/bruce',
-        '_key': 'bruce',
-        '_rev': '_Wm3dzEi--_',
-        'first_name': 'Bruce',
-        'last_name': 'Wayne',
-        'address': {
-            'street' : '1007 Mountain Dr.',
-            'city': 'Gotham',
-            'state': 'NJ'
-        },
-        'is_rich': True,
-        'friends': ['robin', 'gordon']
-    }
-```
+## Example
 
-**Edge documents (edges)** are similar to standard documents but with two additional required fields `_from` and `_to`. Values of these fields must be the handles of "from" and "to" vertex documents linked by the edge document in question. Here is an example of a valid edge document:
+For this example, assume the following credentials:
 
-```json
-    {
-        '_id': 'friends/001',
-        '_key': '001',
-        '_rev': '_Wm3dyle--_',
-        '_from': 'students/john',
-        '_to': 'students/jane',
-        'closeness': 9.5
-    }
-```
+- Tenant name is `nemo@nautilus.com`.
+- User password is `xxxxxx`.
 
-A **Graph** consists of vertices and edges. Edges are stored as documents in edge collections. A vertex can be a document of a document collection or of an edge collection (so edges can be used as vertices). Which collections are used within a named graph is defined via edge definitions. A `named graph` can contain more than one edge definition, at least one is needed. Graphs allow you to structure your models in line with your domain and group them logically in collections and giving you the power to query them in the same graph queries.
-
-In SQL you commonly have the construct of a relation table to store `n:m` relations between two data tables. An `edge collection` is somewhat similar to these relation tables. `Vertex collections` resemble the data tables with the objects to connect. 
-
-While simple graph queries with fixed number of hops via the relation table may be doable in SQL with several nested joins, graph databases can handle an arbitrary number of these hops over edge collections - this is called `traversal`. Also edges in one edge collection may point to several vertex collections. Its common to have attributes attached to edges, i.e. a label naming this interconnection. 
-
-Edges have a direction, with their relations `_from` and `_to` pointing from one document to another document stored in vertex collections. In queries you can define in which directions the edge relations may be followed i.e., 
-
-* OUTBOUND: `_from` → `_to`
-* INBOUND: `_from` ← `_to`
-* ANY: `_from` ↔ `_to`.
-
-:::note
-If you are new to Macrometa GDN, we strongly recommend reading **[Essentials](../../essentials/overview.md)** of Macrometa GDN.
-:::
-
-## Pre-requisite
-
-Let's assume your
-
-* Tenant name is `nemo@nautilus.com` and 
-* User password is `xxxxxx`.
-
-## Driver download
+### SDK Download
 
 <Tabs groupId="operating-systems">
   <TabItem value="py" label="Python">
@@ -97,6 +51,7 @@ Let's assume your
 
     Once the installation process is finished, you can begin developing applications in Python.
 ```
+
   </TabItem>
   <TabItem value="js" label="Javascript">
 
@@ -107,7 +62,7 @@ Let's assume your
         (or)
         npm install jsc8
 
-    If you want to use the driver outside of the current directory, you can also install it globally using the `--global` flag:
+    If you want to use the SDK outside of the current directory, you can also install it globally using the `--global` flag:
 
         npm install --global jsc8
 
@@ -118,10 +73,11 @@ Let's assume your
         npm install
         npm run dist
 ```
+
   </TabItem>
 </Tabs>  
 
-## Connect to GDN
+### Connect to GDN
 
 The first step in using GDN is to establish a connection to a local region. When this code executes, it initializes the server connection to the region URL you sepcified.
 
@@ -129,15 +85,20 @@ The first step in using GDN is to establish a connection to a local region. When
   <TabItem value="py" label="Python">
 
 ```py
-    print("--- Connecting to C8")
-    # Simple Way
-    client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
-                            email='nemo@nautilus.com', password="xxxxxx",
-                            geofabric='_system')
+    from c8 import C8Client
 
-    # To use advanced options
-    client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443)
+    EMAIL = 'nemo@nautilus.com'
+    PASSWORD = 'xxxxx'
+    HOST = 'gdn.paas.macrometa.io'
+    GEO_FABRIC = '_system'
+
+    print("--- Connecting to C8")
+
+    client = C8Client(protocol='https', host=HOST, port=443,
+                      email=EMAIL, password=PASSWORD,
+                      geofabric=GEO_FABRIC)
 ```
+
   </TabItem>
   <TabItem value="js" label="Javascript">
 
@@ -152,11 +113,12 @@ The first step in using GDN is to establish a connection to a local region. When
 
     // To use advanced options
     const client = new jsc8("https://gdn.paas.macrometa.io");
-```     
+```
+
   </TabItem>
 </Tabs>  
 
-## Get GeoFabric Details
+### Get GeoFabric Details
 
 To get details of fabric,
 
@@ -165,12 +127,23 @@ To get details of fabric,
 
 ```py
     from c8 import C8Client
-    client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
-                            email='nemo@nautilus.com', password="xxxxxx",
-                            geofabric='_system')
+
+    EMAIL = 'nemo@nautilus.com'
+    PASSWORD = 'xxxxx'
+    HOST = 'gdn.paas.macrometa.io'
+    GEO_FABRIC = '_system'
+
+    print("--- Connecting to C8")
+
+    client = C8Client(protocol='https', host=HOST, port=443,
+                      email=EMAIL, password=PASSWORD,
+                      geofabric=GEO_FABRIC)
+
     print("Get geo fabric details...")
+
     print(client.get_fabric_details())
 ```
+
   </TabItem>
   <TabItem value="js" label="Javascript">
 
@@ -199,11 +172,12 @@ To get details of fabric,
     }
 
     getFabric();
-```    
+```
+
   </TabItem>
 </Tabs>  
 
-## Create Collection
+### Create Collection
 
 We can now create collection in the fabric. To do this, first you connect to fabric and then create a collection called `employees`.
 
@@ -213,11 +187,22 @@ The below example shows the steps.
   <TabItem value="py" label="Python">
 
 ```py
-    client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
-                            email='nemo@nautilus.com', password="xxxxxx",
-                            geofabric='_system')
+    from c8 import C8Client
+
+    EMAIL = 'nemo@nautilus.com'
+    PASSWORD = 'xxxxx'
+    HOST = 'gdn.paas.macrometa.io'
+    GEO_FABRIC = '_system'
+
+    print("--- Connecting to C8")
+
+    client = C8Client(protocol='https', host=HOST, port=443,
+                      email=EMAIL, password=PASSWORD,
+                      geofabric=GEO_FABRIC)
+                        
     client.create_collection(name='employees')
 ```
+
   </TabItem>
   <TabItem value="js" label="Javascript">
 
@@ -229,7 +214,7 @@ The below example shows the steps.
     // const client = new jsc8({url: "https://gdn.paas.macrometa.io", apiKey: "XXXX", fabricName: '_system'});
     // await console.log("Authentication done!!...");
 
-    // Or use Email & Password to Authenticate client instance
+    // Or use Email and Password to Authenticate client instance
     const client = new jsc8("https://gdn.paas.macrometa.io");
 
     await client.login("nemo@nautilus.com", "xxxxxx");
@@ -250,32 +235,41 @@ The below example shows the steps.
     }
 
     createColl();
-```    
+```
+
   </TabItem>
 </Tabs>  
 
-## Create Edge Collection
+### Create Edge Collection
 
 An **edge collection** contains edge documents and shares its namespace with all other types of collections. You can manage edge documents via standard collection API wrappers, but using edge collection API wrappers provides additional safeguards:
 
-* All modifications are executed in transactions.
-* Edge documents are checked against the edge definitions on insert.
-
+- All modifications are executed in transactions.
+- Edge documents are checked against the edge definitions on insert.
 
 <Tabs groupId="operating-systems">
   <TabItem value="py" label="Python">
 
 ```py
-    # Simple Approach
-    client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
-                            email='nemo@nautilus.com', password="xxxxxx",
-                            geofabric='_system')
-    client.create_collection(name='employees')
+    from c8 import C8Client
+
+    EMAIL = 'nemo@nautilus.com'
+    PASSWORD = 'xxxxx'
+    HOST = 'gdn.paas.macrometa.io'
+    GEO_FABRIC = '_system'
+
+    print("--- Connecting to C8")
+
+    client = C8Client(protocol='https', host=HOST, port=443,
+                      email=EMAIL, password=PASSWORD,
+                      geofabric=GEO_FABRIC)
+
     if client.has_graph('school'):
-      print("Graph exists")
+          print("Graph exists")
     else:
-      print("Create: ", client.create_graph(graph_name='school'))
+          print("Create: ", client.create_graph(graph_name='school'))
 ```
+
   </TabItem>
   <TabItem value="js" label="Javascript">
 
@@ -306,33 +300,45 @@ An **edge collection** contains edge documents and shares its namespace with all
 
     createEdgeColl();
 ```
-  </TabItem>
+
+</TabItem>
 </Tabs>  
 
 You can manage edges via graph API wrappers also, but you must use document IDs instead of keys where applicable.
 
-## Insert Documents
+### Insert Documents
 
 Let's insert documents to the employees collection as shown below.
-
 
 <Tabs groupId="operating-systems">
   <TabItem value="py" label="Python">
 
 ```py
-    client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
-                            email='nemo@nautilus.com', password="xxxxxx",
-                            geofabric='_system')
-    client.insert_document(collection_name='employees', document={'_key':'Jean', 'firstname': 'Jean', 'lastname':'Picard', 'email':'jean.picard@macrometa.io'})
+    from c8 import C8Client
+
+    EMAIL = 'nemo@nautilus.com'
+    PASSWORD = 'xxxxx'
+    HOST = 'gdn.paas.macrometa.io'
+    GEO_FABRIC = '_system'
+
+    print("--- Connecting to C8")
+
+    client = C8Client(protocol='https', host=HOST, port=443,
+                      email=EMAIL, password=PASSWORD,
+                      geofabric=GEO_FABRIC)
+
+    client.insert_document(collection_name='employees', document={'_key': 'Jean', 'firstname': 'Jean', 'lastname': 'Picard',
+                                                              'email': 'jean.picard@macrometa.io'})
 
     docs = [
-      {'_kefabricy':'James', 'firstname': 'James', 'lastname':'Kirk', 'email':'james.kirk@mafabriccrometa.io'},
-      {'_kefabricy': 'Han', 'firstname': 'Han', 'lastname':'Solo', 'email':'han.solo@macrfabricometa.io'},
-      {'_kefabricy': 'Bruce', 'firstname': 'Bruce', 'lastname':'Wayne', 'email':'bruce.wayne@mfabricacrometa.io'}
+        {'_kefabricy': 'James', 'firstname': 'James', 'lastname': 'Kirk', 'email': 'james.kirk@mafabriccrometa.io'},
+        {'_kefabricy': 'Han', 'firstname': 'Han', 'lastname': 'Solo', 'email': 'han.solo@macrfabricometa.io'},
+        {'_kefabricy': 'Bruce', 'firstname': 'Bruce', 'lastname': 'Wayne', 'email': 'bruce.wayne@mfabricacrometa.io'}
     ]
 
     client.insert_document(collection_name='employees', document=docs)
 ```
+
   </TabItem>
   <TabItem value="js" label="Javascript">
 
@@ -344,7 +350,7 @@ Let's insert documents to the employees collection as shown below.
     // const client = new jsc8({url: "https://gdn.paas.macrometa.io", apiKey: "XXXX", fabricName: '_system'});
     // await console.log("Authentication done!!...");
 
-    // Or use Email & Password to Authenticate client instance
+    // Or use Email and Password to Authenticate client instance
     const client = new jsc8("https://gdn.paas.macrometa.io");
 
     await client.login("nemo@nautilus.com", "xxxxxx");
@@ -361,11 +367,12 @@ Let's insert documents to the employees collection as shown below.
     }
 
     insertDoc();
-```    
-  </TabItem>
+```
+
+</TabItem>
 </Tabs>  
 
-## Create Graph
+### Create Graph
 
 A graph consists of vertices and edges. Vertices are stored as documents in vertex collections and edges stored as documents in edge collections. The collections used in a graph and their relations are specified with edge definitions.
 
@@ -375,21 +382,27 @@ A graph consists of vertices and edges. Vertices are stored as documents in vert
 ```py
     from c8 import C8Client
 
-    client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
-                            email='nemo@nautilus.com', password="xxxxxx",
-                            geofabric='_system')
+    EMAIL = 'nemo@nautilus.com'
+    PASSWORD = 'xxxxx'
+    HOST = 'gdn.paas.macrometa.io'
+    GEO_FABRIC = '_system'
 
+    print("--- Connecting to C8")
+
+    client = C8Client(protocol='https', host=HOST, port=443,
+                      email=EMAIL, password=PASSWORD,
+                      geofabric=GEO_FABRIC)
 
     # List existing graphs in the fabric.
     client.get_graphs()
 
     # Create a new graph named "school" if it does not already exist.
-    # This returns an API wrapper for "school" graph.
-    iif client.has_graph('school'):
-        school = client.graph('school')
+    if client.has_graph('school'):
+        school = client.get_graph('school')
     else:
         school = client.create_graph('school')
 ```
+
   </TabItem>
   <TabItem value="js" label="Javascript">
 
@@ -401,7 +414,7 @@ A graph consists of vertices and edges. Vertices are stored as documents in vert
     // const client = new jsc8({url: "https://gdn.paas.macrometa.io", apiKey: "XXXX", fabricName: '_system'});
     // await console.log("Authentication done!!...");
 
-    // Or use Email & Password to Authenticate client instance
+    // Or use Email and Password to Authenticate client instance
     const client = new jsc8("https://gdn.paas.macrometa.io");
 
     await client.login("nemo@nautilus.com", "xxxxxx");
@@ -418,10 +431,11 @@ A graph consists of vertices and edges. Vertices are stored as documents in vert
 
     createGraph();
 ```
-  </TabItem>
+
+</TabItem>
 </Tabs>  
 
-## Graph Traversals
+### Graph Traversals
 
 A graph consists of `vertices` and `edges`. Vertices are stored as documents in vertex collections and edges stored as documents in edge collections. The collections used in a graph and their relations are specified with edge definitions.
 
@@ -433,191 +447,195 @@ A graph consists of `vertices` and `edges`. Vertices are stored as documents in 
     import pprint
 
     # Variables - Queries
-    global_url = "gdn.paas.macrometa.io"
-    email = "nemo@nautilus.com"
-    password = "xxxxxx"
-    geo_fabric = "_system"
-    collection_people = "CDRpeople"
-    collection_calls = "CDRcalls"
-    collection_cellsites = "CDRcellsites"
-    collection_graph = "CDRgraphdocs"
-    read_people = "FOR person IN CDRpeople RETURN person"
-    read_calls = "FOR call IN CDRcalls RETURN call"
-    person = "Lou Feaveer"
-    graph_traversal1 = "FOR c IN CDRpeople FILTER c.full_name == \"{}\" FOR v IN 1..1 INBOUND c CDRcalls RETURN v".format(person)
-    graph_traversal2 = "FOR c IN CDRpeople FILTER c.full_name == \"{}\" FOR v IN 1..1 OUTBOUND c CDRcalls RETURN v".format(person)
+    GLOBAL_URL = "gdn.paas.macrometa.io"
+    EMAIL = "nemo@nautilus.com"
+    PASSWORD = "xxxxxx"
+    GEO_FABRIC = "_system"
+    COLLECTION_PEOPLE = "CDRpeople"
+    COLLECTION_CALLS = "CDRcalls"
+    COLLECTION_GRAPH = "CDRgraphdocs"
+    READ_PEOPLE = f"FOR person IN {COLLECTION_PEOPLE} RETURN person"
+    READ_CALLS = f"FOR call IN {COLLECTION_CALLS} RETURN call"
+    PERSON = "Lou Feaveer"
+    GRAPH_TRAVERSAL_1 = (f"FOR c IN {COLLECTION_PEOPLE} FILTER c.full_name == \"{PERSON}\""
+        f"FOR v IN 1..1 INBOUND c {COLLECTION_CALLS} RETURN v")
+    GRAPH_TRAVERSAL_2 = (f"FOR c IN {COLLECTION_PEOPLE} FILTER c.full_name == \"{PERSON}\""
+        f"FOR v IN 1..1 OUTBOUND c {COLLECTION_CALLS} RETURN v")
 
     pp = pprint.PrettyPrinter(indent=4)
 
     # Initialize the C8 Data Fabric client.
     # Step1: Open connection to GDN. You will be routed to closest region.
-    print("1. CONNECT: federation: {},  user: {}".format(global_url, email))
-    client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
-                            email=email, password=password,
-                            geofabric=geo_fabric)
-
+    print(f"1. CONNECT: federation: {GLOBAL_URL},  user: {EMAIL}")
+    
+    client = C8Client(protocol='https', host=GLOBAL_URL, port=443,
+                      email=EMAIL, password=PASSWORD,
+                      geofabric=GEO_FABRIC)
 
     # Step2: Create collections if not exists
-    print("2a. CREATE_PEOPLE_VERTEX_COLLECTION: region: {},  collection: {}".format(global_url, collection_people))
-    if client.has_collection(collection_people):
-        peopleCol = client.collection(collection_people)
-    else:
-        peopleCol = client.create_collection(collection_people)
+    print(f"2a. CREATE_PEOPLE_VERTEX_COLLECTION: region: {GLOBAL_URL}, collection: {COLLECTION_PEOPLE}")
 
-    print("2b. CREATE_CALLS_EDGE_COLLECTION: region: {},  collection: {}".format(global_url, collection_calls))
-    if client.has_collection(collection_calls):
-        callsCol = client.collection(collection_calls)
+    if client.has_collection(COLLECTION_PEOPLE):
+        peopleCol = client.collection(COLLECTION_PEOPLE)
     else:
-        callsCol = client.create_collection(collection_calls, edge=True)
+        peopleCol = client.create_collection(COLLECTION_PEOPLE)
+
+    print(f"2b. CREATE_CALLS_EDGE_COLLECTION: region: {GLOBAL_URL},  collection: {COLLECTION_CALLS}")
+
+    if client.has_collection(COLLECTION_CALLS):
+        callsCol = client.collection(COLLECTION_CALLS)
+    else:
+        callsCol = client.create_collection(COLLECTION_CALLS, edge=True)
 
     # Step3: Insert data into collections.
-    print("3a. INSERT_PEOPLE_DATA: region: {}, collection: {}".format(global_url, collection_people))
+    print(f"3a. INSERT_PEOPLE_DATA: region: {GLOBAL_URL}, collection: {COLLECTION_PEOPLE}")
 
     # insert documents into the collection
     docs = [
-      {
-        "full_name": "Kiel Dummer",
-        "first_name": "Kiel",
-        "last_name": "Dummer",
-        "city": "Burbank",
-        "state": "CA",
-        "address": "40317 5th Crossing",
-        "calling_nbr": "757-697-9065",
-        "_key": "757-697-9065"
-      },
-      {
-        "full_name": "Pernell Winspare",
-        "first_name": "Pernell",
-        "last_name": "Winspare",
-        "city": "San Diego",
-        "state": "CA",
-        "address": "596 Packers Pass",
-        "calling_nbr": "718-208-8096",
-        "_key": "718-208-8096"
-      },
-      {
-        "full_name": "Ava Kermath",
-        "first_name": "Ava",
-        "last_name": "Kermath",
-        "city": "Berkeley",
-        "state": "CA",
-        "address": "2 Doe Crossing Junction",
-        "calling_nbr": "765-623-5328",
-        "_key": "765-623-5328"
-      },
-      {
-        "full_name": "Tremain McGrah",
-        "first_name": "Tremain",
-        "last_name": "McGrah",
-        "city": "Torrance",
-        "state": "CA",
-        "address": "079 Russell Street",
-        "calling_nbr": "859-783-3227",
-        "_key": "859-783-3227"
-      },
-      {
-        "full_name": "Vidovik Boddam",
-        "first_name": "Vidovik",
-        "last_name": "Boddam",
-        "city": "Los Angeles",
-        "state": "CA",
-        "address": "3 Brentwood Crossing",
-        "calling_nbr": "703-265-1313",
-        "_key": "703-265-1313"
-      },
-      {
-        "full_name": "Oralie Goward",
-        "first_name": "Oralie",
-        "last_name": "Goward",
-        "city": "Los Angeles",
-        "state": "CA",
-        "address": "922 Columbus Park",
-        "calling_nbr": "617-815-8610",
-        "_key": "617-815-8610"
-      },
-      {
-        "full_name": "Lou Feaveer",
-        "first_name": "Lou",
-        "last_name": "Feaveer",
-        "city": "San Jose",
-        "state": "CA",
-        "address": "55223 Hooker Crossing",
-        "calling_nbr": "716-463-8993",
-        "_key": "716-463-8993"
-      },
-      {
-        "full_name": "Peria King",
-        "first_name": "Peria",
-        "last_name": "King",
-        "city": "Stockton",
-        "state": "CA",
-        "address": "8 Troy Plaza",
-        "calling_nbr": "713-707-8699",
-        "_key": "713-707-8699"
-      }
+        {
+            "full_name": "Kiel Dummer",
+            "first_name": "Kiel",
+            "last_name": "Dummer",
+            "city": "Burbank",
+            "state": "CA",
+            "address": "40317 5th Crossing",
+            "calling_nbr": "757-697-9065",
+            "_key": "757-697-9065"
+        },
+        {
+            "full_name": "Pernell Winspare",
+            "first_name": "Pernell",
+            "last_name": "Winspare",
+            "city": "San Diego",
+            "state": "CA",
+            "address": "596 Packers Pass",
+            "calling_nbr": "718-208-8096",
+            "_key": "718-208-8096"
+        },
+        {
+            "full_name": "Ava Kermath",
+            "first_name": "Ava",
+            "last_name": "Kermath",
+            "city": "Berkeley",
+            "state": "CA",
+            "address": "2 Doe Crossing Junction",
+            "calling_nbr": "765-623-5328",
+            "_key": "765-623-5328"
+        },
+        {
+            "full_name": "Tremain McGrah",
+            "first_name": "Tremain",
+            "last_name": "McGrah",
+            "city": "Torrance",
+            "state": "CA",
+            "address": "079 Russell Street",
+            "calling_nbr": "859-783-3227",
+            "_key": "859-783-3227"
+        },
+        {
+            "full_name": "Vidovik Boddam",
+            "first_name": "Vidovik",
+            "last_name": "Boddam",
+            "city": "Los Angeles",
+            "state": "CA",
+            "address": "3 Brentwood Crossing",
+            "calling_nbr": "703-265-1313",
+            "_key": "703-265-1313"
+        },
+        {
+            "full_name": "Oralie Goward",
+            "first_name": "Oralie",
+            "last_name": "Goward",
+            "city": "Los Angeles",
+            "state": "CA",
+            "address": "922 Columbus Park",
+            "calling_nbr": "617-815-8610",
+            "_key": "617-815-8610"
+        },
+        {
+            "full_name": "Lou Feaveer",
+            "first_name": "Lou",
+            "last_name": "Feaveer",
+            "city": "San Jose",
+            "state": "CA",
+            "address": "55223 Hooker Crossing",
+            "calling_nbr": "716-463-8993",
+            "_key": "716-463-8993"
+        },
+        {
+            "full_name": "Peria King",
+            "first_name": "Peria",
+            "last_name": "King",
+            "city": "Stockton",
+            "state": "CA",
+            "address": "8 Troy Plaza",
+            "calling_nbr": "713-707-8699",
+            "_key": "713-707-8699"
+        }
     ]
     peopleCol.insert_many(docs)
 
-    print("3a. INSERT_CALL_RECORDS_DATA: region: {}, collection: {}".format(global_url, collection_calls))
+    print(f"3a. INSERT_CALL_RECORDS_DATA: region: {GLOBAL_URL}, collection: {COLLECTION_CALLS}")
+
     docs = [
-            {
-        "calling_nbr": "757-697-9065",
-        "called_nbr": "716-463-8993",
-        "_from": "CDRpeople/757-697-9065",
-        "_to": "CDRpeople/716-463-8993",
-        "call_date": "1/4/2020",
-        "call_time": "13:33",
-        "call_duration": 30,
-        "cell_site": 4044703906
-      },
-      {
-        "calling_nbr": "716-463-8993",
-        "called_nbr": "713-707-8699",
-        "_from": "CDRpeople/716-463-8993",
-        "_to": "CDRpeople/713-707-8699",
-        "call_date": "1/28/2020",
-        "call_time": "3:02",
-        "call_duration": 18,
-        "cell_site": 2289973823
-      },
-      {
-        "calling_nbr": "765-623-5328",
-        "called_nbr": "713-707-8699",
-        "_from": "CDRpeople/765-623-5328",
-        "_to": "CDRpeople/713-707-8699",
-        "call_date": "1/28/2020",
-        "call_time": "3:02",
-        "call_duration": 18,
-        "cell_site": 2289973823
-      }
-        ]
+        {
+            "calling_nbr": "757-697-9065",
+            "called_nbr": "716-463-8993",
+            "_from": "CDRpeople/757-697-9065",
+            "_to": "CDRpeople/716-463-8993",
+            "call_date": "1/4/2020",
+            "call_time": "13:33",
+            "call_duration": 30,
+            "cell_site": 4044703906
+        },
+        {
+            "calling_nbr": "716-463-8993",
+            "called_nbr": "713-707-8699",
+            "_from": "CDRpeople/716-463-8993",
+            "_to": "CDRpeople/713-707-8699",
+            "call_date": "1/28/2020",
+            "call_time": "3:02",
+            "call_duration": 18,
+            "cell_site": 2289973823
+        },
+        {
+            "calling_nbr": "765-623-5328",
+            "called_nbr": "713-707-8699",
+            "_from": "CDRpeople/765-623-5328",
+            "_to": "CDRpeople/713-707-8699",
+            "call_date": "1/28/2020",
+            "call_time": "3:02",
+            "call_duration": 18,
+            "cell_site": 2289973823
+        }
+    ]
     callsCol.insert_many(docs)
 
-    #Step4: Create a graph
+    # Step4: Create a graph
     print("4. CREATE_GRAPH...CDRgraph")
-    graph = client.create_graph(collection_graph)
+
+    graph = client.create_graph(COLLECTION_GRAPH)
     register = graph.create_edge_definition(
-            edge_collection=collection_calls,
-            from_vertex_collections=[collection_people],
-            to_vertex_collections=[collection_people]
-        )
+    edge_collection=COLLECTION_CALLS,
+    from_vertex_collections=[COLLECTION_PEOPLE],
+    to_vertex_collections=[COLLECTION_PEOPLE]
+    )
 
     # Step5: Read Data
-    print("5a. GRAPH_TRAVERSAL: Find outbound calls TO: {}".format(person))
-    cursor = client.execute_query(graph_traversal1)
-    docs = [document for document in cursor]
+    print(f"5a. GRAPH_TRAVERSAL: Find outbound calls TO: {PERSON}")
+    cursor = client.execute_query(GRAPH_TRAVERSAL_1)
+    docs = list(document for document in cursor)
     pp.pprint(docs)
-    print("5b. GRAPH_TRAVERSAL: Find inbound calls FROM: {}".format(person))
-    cursor = client.execute_query(graph_traversal2)
-    docs = [document for document in cursor]
+    print(f"5b. GRAPH_TRAVERSAL: Find inbound calls FROM: {PERSON}")
+    cursor = client.execute_query(GRAPH_TRAVERSAL_2)
+    docs = list(document for document in cursor)
     pp.pprint(docs)
 
     # Step6: Delete Data
     print("6. DELETE_DATA...")
-    #callsCol.truncate()
-    #peopleCol.truncate()
-    client.delete_graph(collection_graph, drop_collections=False)
+    client.delete_graph(COLLECTION_GRAPH, drop_collections=False)
 ```
+
   </TabItem>
   <TabItem value="js" label="Javascript">
 
@@ -632,7 +650,7 @@ A graph consists of `vertices` and `edges`. Vertices are stored as documents in 
     // const client = new jsc8({url: "https://gdn.paas.macrometa.io", apiKey: "XXXX", fabricName: '_system'});
     // await console.log("Authentication done!!...");
 
-    // Or use Email & Password to Authenticate client instance
+    // Or use Email and Password to Authenticate client instance
     const client = new jsc8("https://gdn.paas.macrometa.io");
 
     await client.login("nemo@nautilus.com", "xxxxxx");
@@ -640,17 +658,16 @@ A graph consists of `vertices` and `edges`. Vertices are stored as documents in 
     //Variables
     const collection_people = "CDRpeople";
     const collection_calls = "CDRcalls";
-    const collection_cellsites = "CDRcellsites";
     const collection_graph = "CDRgraphdocs";
     const person = "Lou Feaveer";
 
     let datalist = [];
 
     // Variables - Queries
-    const read_people = "FOR person IN CDRpeople RETURN person";
-    const read_calls = "FOR call IN CDRcalls RETURN call";
-    const graph_traversal1 = `FOR c IN CDRpeople FILTER c.full_name == \"${person}\" FOR v IN 1..1 INBOUND c CDRcalls RETURN v`;
-    const graph_traversal2 = `FOR c IN CDRpeople FILTER c.full_name == \"${person}\" FOR v IN 1..1 OUTBOUND c CDRcalls RETURN v`;
+    const read_people = "FOR person IN ${collection_people} RETURN person";
+    const read_calls = "FOR call IN ${collection_calls} RETURN call";
+    const graph_traversal1 = `FOR c IN ${collection_people} FILTER c.full_name == \"${person}\" FOR v IN 1..1 INBOUND c ${collection_calls} RETURN v`;
+    const graph_traversal2 = `FOR c IN ${collection_people} FILTER c.full_name == \"${person}\" FOR v IN 1..1 OUTBOUND c ${collection_calls} RETURN v`;
     
     async function createCollection() {
     
@@ -838,21 +855,22 @@ A graph consists of `vertices` and `edges`. Vertices are stored as documents in 
       await deleteData();
     })();
 ```
+
   </TabItem>
 </Tabs>  
 
-#### Outbound Traversal
+##### Outbound Traversal
 
 <Tabs groupId="operating-systems">
   <TabItem value="py" label="Python">
 
 ```py
-    # Step4: Read Data
-    print("4a. GRAPH_TRAVERSAL: Find outbound calls TO: {}".format(person))
-    cursor = client.execute_query(graph_traversal1)
-    docs = [document for document in cursor]
+    print(f"4a. GRAPH_TRAVERSAL: Find outbound calls TO: {person}")
+    cursor = client.execute_query(GRAPH_TRAVERSAL_1)
+    docs = list(document for document in cursor)
     pp.pprint(docs)
 ```
+
   </TabItem>
   <TabItem value="js" label="Javascript">
 
@@ -861,20 +879,22 @@ A graph consists of `vertices` and `edges`. Vertices are stored as documents in 
     let result = await client.executeQuery(graph_traversal1);
     console.log(result);
 ```
+
   </TabItem>
 </Tabs>  
 
-#### Inbound Traversal
+##### Inbound Traversal
 
 <Tabs groupId="operating-systems">
   <TabItem value="py" label="Python">
 
 ```py
-    print("4b. GRAPH_TRAVERSAL: Find inbound calls FROM: {}".format(person))
-    cursor = client.execute_query(graph_traversal2)
-    docs = [document for document in cursor]
+    print(f"4b. GRAPH_TRAVERSAL: Find inbound calls FROM: {person}")
+    cursor = client.execute_query(GRAPH_TRAVERSAL_2)
+    docs = list(document for document in cursor)
     pp.pprint(docs)
 ```
+
   </TabItem>
   <TabItem value="js" label="Javascript">
 
@@ -882,11 +902,12 @@ A graph consists of `vertices` and `edges`. Vertices are stored as documents in 
     console.log(`5b. GRAPH_TRAVERSAL: Find inbound calls FROM: ${person}`);
     result = await client.executeQuery(graph_traversal2);
     console.log(result);
-```    
+```
+
   </TabItem>
 </Tabs>  
 
-## Delete Graph
+### Delete Graph
 
 <Tabs groupId="operating-systems">
   <TabItem value="py" label="Python">
@@ -894,14 +915,20 @@ A graph consists of `vertices` and `edges`. Vertices are stored as documents in 
 ```py
     from c8 import C8Client
 
-    # Initialize the C8 Data Fabric client.
-    client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
-                            email='nemo@nautilus.com', password="xxxxxx",
-                            geofabric='_system')
+    EMAIL = 'nemo@nautilus.com'
+    PASSWORD = 'xxxxx'
+    HOST = 'gdn.paas.macrometa.io'
+    GEO_FABRIC = '_system'
 
-    # This returns an API wrapper for "school" graph and deletes the graph
+    print("--- Connecting to C8")
+
+    client = C8Client(protocol='https', host=HOST, port=443,
+                            email=EMAIL, password=PASSWORD,
+                            geofabric=GEO_FABRIC)
+
     client.delete_graph('school')
-```    
+```
+
   </TabItem>
   <TabItem value="js" label="Javascript">
 
@@ -923,6 +950,7 @@ A graph consists of `vertices` and `edges`. Vertices are stored as documents in 
     }
 
     DeleteGraph();
-```    
+```
+
   </TabItem>
 </Tabs>  
