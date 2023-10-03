@@ -20,9 +20,9 @@ One use case supported by TTL indexes is to remove documents at a fixed duration
 Let's assume the index attribute is set to "creationDate", and the `expireAfter` attribute of the index was set to 600 seconds (10 minutes).
 
 ```cURL
-curl -X 'POST' 'https://api-gdn.eng.macrometa.io/_fabric/_system/_api/index/ttl?collection=collectionName' \
+curl -X 'POST' 'https://api-play.paas.macrometa.io/_fabric/_system/_api/index/ttl?collection=collectionName' \
  -H 'Authorization: bearer <token>'                                                                       \
- -d '{ "fields": [ "type" : "ttl", ."fields": ["creationDate"],  "expireAfter": 600}'
+ -d '{ "type" : "ttl", "fields": ["creationDate"],  "expireAfter": 600}'
 ```
 
 Let's further assume the following document now gets inserted into the collection:
@@ -54,9 +54,9 @@ Another use case is to specify a per-document expiration/removal point in time, 
 Let's assume the index attribute is set to "expireDate", and the `expireAfter` attribute of the index was set to 0 seconds (immediately when wall clock time reaches the value specified in `expireDate`).
 
 ```cURL
-curl -X 'POST' 'https://api-gdn.eng.macrometa.io/_fabric/_system/_api/index/ttl?collection=collectionName' \ 
+curl -X 'POST' 'https://api-play.paas.macrometa.io/_fabric/_system/_api/index/ttl?collection=collectionName' \ 
  -H 'Authorization: bearer <token>'                                                                       \
- -d '{ "fields": [ "type" : "ttl", ."fields": ["expireDate"],  "expireAfter": 0}'
+ -d '{ "type" : "ttl", "fields": ["expireDate"],  "expireAfter": 0}'
 ```
 
 When storing the following document in the collection, it will expire at the point in time specified in the document itself:
@@ -121,9 +121,9 @@ There are limited number of background threads for performing the removal of exp
 Ensures that a TTL index exists:
 
 ```cURL
-curl -X 'POST' 'https://api-gdn.eng.macrometa.io/_fabric/_system/_api/index/ttl?collection=collectionName' \
+curl -X 'POST' 'https://api-play.paas.macrometa.io/_fabric/_system/_api/index/ttl?collection=collectionName' \
  -H 'Authorization: bearer <token>'                                                                       \
- -d '{ "fields": [ "type" : "ttl", ."fields": ["field"],  "expireAfter": 600}'
+ -d '{ "type" : "ttl", "fields": ["field"],  "expireAfter": 600}'
 ```
 
 Creates a TTL index on all documents using *field* as attribute path. Exactly one attribute path has to be given. The index will be sparse in all cases.
@@ -132,8 +132,8 @@ In case that the index was successfully created, an object with the index detail
 
 ## Create TTL Index in GDN Console
 
-1. [Log in to your Macrometa account](https://auth.paas.macrometa.io/).
-1. Click **COLLECTIONS**.
+1. [Log in to your Macrometa account](https://auth-play.macrometa.io/).
+1. Click **Data > Collections**.
 1. Click the collection that you want to create an index for.
 1. Click **Indexes**.
 1. In **Type**, select **TTL Index**.

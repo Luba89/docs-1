@@ -9,7 +9,7 @@ Macrometa Command Line Interface (CLI) is a command line interface that enables 
 1. Script serverless workflows via GitHub.
 1. Easily learn commands with consistent verbs, nouns, and flags.
 
-You can use commands with the GDN Command Line Interface (CLI) to perform the same actions you can perform in the GUI or API.
+You can use commands with the GDN Command Line Interface (CLI) to perform many of the same actions that you can perform in the GUI or API.
 
 ## Prerequisites
 
@@ -28,7 +28,7 @@ gdnsl init
 Sample gdnsl.yaml:
 
   ```yaml
-  url: gdn.paas.macrometa.io
+  url: play.paas.macrometa.io
   tenant: demo@macrometa.io
   apikey: "xxxxxxx"
   regions: [ ] # Valid values - LOCAL, ALL, comma separated list of regions.

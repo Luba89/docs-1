@@ -8,69 +8,19 @@ import TabItem from '@theme/TabItem';
 
 This section demonstrates some of the tasks that you can complete with Macrometa SDKs. Macrometa offers the following SDKs:
 
-- [c84j](https://github.com/Macrometacorp/c84j) - Java SDK
-- [jsC8](https://github.com/Macrometacorp/jsC8) - JavaScript SDK
-- [pyC8](https://github.com/Macrometacorp/pyC8) - Python SDK
-- [VueC8](https://github.com/Macrometacorp/VueC8) - VueJS SDK
+- [Javascript](https://github.com/Macrometacorp/jsC8)
+- [Python](https://github.com/Macrometacorp/pyC8)
 
-The topics in this section focus primarily on the Python and JavaScript drivers, showing how to perform the tasks with SDKs or with APIs and the appropriate calls Python or JavaScript calls.
+Read through the complete example below to see how to perform tasks with SDKs or with APIs using Python or JavaScript calls.
 
-Read through the complete example below, or refer to the specific subsections.
+## Pre-requisites
 
-## Pre-requisite
+- You must have a Macrometa account with admin privileges
+- [Install the SDK](install-sdks.md) that corresponds to the programming language you want to use.
 
-- Assume your tenant name is `nemo@nautilus.com` and user password is `xxxxx`.
-- Download the appropriate SDK.
+## SDK Example
 
-## SDK download
-
-<Tabs groupId="operating-systems">
-<TabItem value="js" label="Javascript">
-
-```js
-With Yarn or NPM
-
-yarn add jsc8
-(or)
-npm install jsc8
-
-If you want to use the SDK outside of the current directory, you can also install it globally using the `--global` flag:
-
-npm install --global jsc8
-
-From source,
-
-git clone https://github.com/macrometacorp/jsc8.git
-cd jsC8
-npm install
-npm run dist
-```
-
-</TabItem>
-<TabItem value="py" label="Python">
-
-```py
-pyC8 requires Python 3.5+. Python 3.6 or higher is recommended
-
-To install pyC8, simply run
-
-$ pip3 install pyC8
-
-or, if you prefer to use conda:
-
-conda install -c conda-forge pyC8
-
-or pipenv:
-
-pipenv install --pre pyC8
-
-Once the installation process is finished, you can begin developing applications in Python.
-```
-
-</TabItem>
-</Tabs>
-
-## Complete Example
+Assume your tenant name is `nemo@nautilus.com` and user password is `xxxxx`.
 
 <Tabs groupId="operating-systems">
 <TabItem value="js" label="Javascript">
@@ -84,16 +34,17 @@ const password = "xxxxxx";
 const fabric = "_system";
 const collectionName = "testCollection";
 const streamName = "testStream";
+// API key ID
 const keyid = "id1";
 
 const client = new jsc8({
-  url: "https://gdn.paas.macrometa.io",
+  url: "https://play.paas.macrometa.io",
   fabricName: fabric
 });
 
 // Or create an authenticated instance with a token or API key.
-// const client = new jsc8({url: "https://gdn.paas.macrometa.io", token: "XXXX", fabricName: fabric});
-// const client = new jsc8({url: "https://gdn.paas.macrometa.io", apiKey: "XXXX", fabricName: fabric});
+// const client = new jsc8({url: "https://play.paas.macrometa.io", token: "XXXX", fabricName: fabric});
+// const client = new jsc8({url: "https://play.paas.macrometa.io", apiKey: "XXXX", fabricName: fabric});
 // console.log("Authentication done!");
 
 function messageHandler (error) {
@@ -250,21 +201,22 @@ main()
 ```py
 from c8 import C8Client
 # Create a connection to gdn
-client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
+client = C8Client(protocol='https', host='play.paas.macrometa.io', port=443,
                         email='nemo@nautilus.com', password='xxxxx',
                         geofabric='_system')
 
-#remove = client.remove_api_key('id1')
+# API key ID
+keyid = "id1"
 
-# Create an api key
-print("Create API Key: ", client.create_api_key('id1'))
+# Create an API key
+print("Create API Key: ", client.create_api_key(keyid))
 
 # Fetch List of accessible databases and streams
-print("Accessible Databases: ", client.list_accessible_databases('id1'))
+print("Accessible Databases: ", client.list_accessible_databases(keyid))
 
-print("Accessible Streams of a db: ", client.list_accessible_streams('id1', '_system'))
+print("Accessible Streams of a db: ", client.list_accessible_streams(keyid, '_system'))
 
-# Set Accesslevels for an API Key
+# Set access levels for an API key
 
 # Create a new collection if it does not exist
 if client.has_collection('testCollection'):
@@ -274,28 +226,28 @@ else:
 # Create a new stream
 # print(client.create_stream('testStream'))
 
-print("Set DB Access Level: ", client.set_database_access_level('id1', '_system', 'rw'))
+print("Set DB Access Level: ", client.set_database_access_level(keyid, '_system', 'rw'))
 
-print("Set Coll Access Level: ", client.set_collection_access_level('id1', 'testCollection', '_system', 'rw'))
+print("Set Coll Access Level: ", client.set_collection_access_level(keyid, 'testCollection', '_system', 'rw'))
 
-print("Set Stream Access Level: ", client.set_stream_access_level('id1','c8globals.testStream', '_system'))
+print("Set Stream Access Level: ", client.set_stream_access_level(keyid,'c8globals.testStream', '_system'))
 
 # Get AccessLevel
-print("Get DB Access Level", client.get_database_access_level('id1','_system'))
+print("Get DB Access Level", client.get_database_access_level(keyid,'_system'))
 
-print("Get Coll Access Level: ", client.get_collection_access_level('id1','testCollection', '_system'))
+print("Get Coll Access Level: ", client.get_collection_access_level(keyid,'testCollection', '_system'))
 
-print("Get Stream Access Level: ", client.get_stream_access_level('id1','c8globals.testStream', '_system'))
+print("Get Stream Access Level: ", client.get_stream_access_level(keyid,'c8globals.testStream', '_system'))
 
 # Clear Access Level
-print("Clear DB Access Level: ", client.clear_database_access_level('id1','_system'))
+print("Clear DB Access Level: ", client.clear_database_access_level(keyid,'_system'))
 
-print("Clear Coll Access Level: ", client.clear_collection_access_level('id1','testCollection', '_system'))
+print("Clear Coll Access Level: ", client.clear_collection_access_level(keyid,'testCollection', '_system'))
 
-print("Clear Stream Access Level: ", client.clear_stream_access_level('id1','c8globals.testStream', '_system'))
+print("Clear Stream Access Level: ", client.clear_stream_access_level(keyid,'c8globals.testStream', '_system'))
 
 # Remove api key
-remove = client.remove_api_key('id1')
+remove = client.remove_api_key(keyid)
 
 print(remove)
 ```
@@ -309,15 +261,15 @@ import json
 
 # Constants
 
-FEDERATION = "api-gdn.macrometa.io"
-FED_URL = "https://{}".format(FEDERATION)
+URL = "api-gdn.macrometa.io"
+HTTP_URL = "https://{}".format(URL)
 EMAIL = "nemo@nautilus.com"
 PASSWORD = "xxxxxx"
 AUTH_TOKEN = "bearer "
 
 # Create a HTTPS Session
 
-url = "{}/_open/auth".format(FED_URL)
+url = "{}/_open/auth".format(HTTP_URL)
 payload = {
     'email':EMAIL,
     'password':PASSWORD
@@ -342,7 +294,7 @@ session.headers.update({"authorization": AUTH_TOKEN})
 
 # Create an API Key
 keyid = "id1"
-url = FED_URL + "/_api/key"
+url = HTTP_URL + "/_api/key"
 payload= {
 "keyid": keyid
 }
@@ -355,7 +307,7 @@ else:
     print("API Key Created: ", resp)
         
 # Fetch List of accessible databases and streams
-url = FED_URL + "/_api/key/" + keyid + "/database/_system/stream"
+url = HTTP_URL + "/_api/key/" + keyid + "/database/_system/stream"
 resp = session.get(url)
 resp = json.loads(resp.text)
 if resp['error'] is True:
@@ -363,7 +315,7 @@ if resp['error'] is True:
 else:
     print("Accessible Streams: ", resp)
 
-url = FED_URL + "/_api/key/" + keyid + "/database/_system/collection"
+url = HTTP_URL + "/_api/key/" + keyid + "/database/_system/collection"
 resp = session.get(url)
 resp = json.loads(resp.text)
 if resp['error'] is True:
@@ -371,7 +323,7 @@ if resp['error'] is True:
 else:
     print("Accessible Collections: ", resp)
 
-url = FED_URL + "/_api/key/" + keyid + "/database"
+url = HTTP_URL + "/_api/key/" + keyid + "/database"
 resp = session.get(url)
 resp = json.loads(resp.text)
 if resp['error'] is True:
@@ -380,7 +332,7 @@ else:
     print("Accessible Databases: ", resp)
 
 # Set Database Access Level
-url = FED_URL + "/_api/key/" + keyid + "/database/_system"
+url = HTTP_URL + "/_api/key/" + keyid + "/database/_system"
 payload={
 "grant": "rw"
 }
@@ -392,7 +344,7 @@ else:
     print("Set Database Access Level: ", resp)
 
 # Set Collection Access Level
-url = FED_URL + "/_api/key/" + keyid + "/database/_system/collection/testCollection"
+url = HTTP_URL + "/_api/key/" + keyid + "/database/_system/collection/testCollection"
 payload={
 "grant": "rw"
 }
@@ -404,7 +356,7 @@ else:
     print("Set Collection Access Level: ", resp)
 
 # Set Stream Access Level
-url = FED_URL + "/_api/key/" + keyid + "/database/_system/stream/c8globals.testStream"
+url = HTTP_URL + "/_api/key/" + keyid + "/database/_system/stream/c8globals.testStream"
 payload={
 "grant": "rw"
 }
@@ -416,7 +368,7 @@ else:
     print("Set Stream Access Level: ", resp)
 
 # Get Database Acces Level
-url = FED_URL + "/_api/key/" + keyid + "/database/_system"
+url = HTTP_URL + "/_api/key/" + keyid + "/database/_system"
 resp = session.get(url)
 resp = json.loads(resp.text)
 if resp['error'] is True:
@@ -425,7 +377,7 @@ else:
     print("Get Database Access Level: ", resp)
 
 # Get Stream Access Level
-url = FED_URL + "/_api/key/" + keyid + "/database/_system/stream/c8globals.testStream"
+url = HTTP_URL + "/_api/key/" + keyid + "/database/_system/stream/c8globals.testStream"
 resp = session.get(url)
 resp = json.loads(resp.text)
 if resp['error'] is True:
@@ -434,7 +386,7 @@ else:
     print("Get Stream Access Level: ", resp)
 
 # Get Collection Access Level
-url = FED_URL + "/_api/key/" + keyid + "/database/_system/collection/testCollection"
+url = HTTP_URL + "/_api/key/" + keyid + "/database/_system/collection/testCollection"
 resp = session.get(url)
 resp = json.loads(resp.text)
 if resp['error'] is True:
@@ -443,7 +395,7 @@ else:
     print("Get Collection Access Level: ", resp)
 
 # Clear Database Access Level
-url = FED_URL + "/_api/key/" + keyid + "/database/_system"
+url = HTTP_URL + "/_api/key/" + keyid + "/database/_system"
 resp = session.delete(url)
 resp = json.loads(resp.text)
 if resp['error'] is True:
@@ -452,7 +404,7 @@ else:
     print("Clear Database Access Level: ", resp)
 
 # Clear Collection Access Level
-url = FED_URL + "/_api/key/" + keyid + "/database/_system/collection/testCollection"
+url = HTTP_URL + "/_api/key/" + keyid + "/database/_system/collection/testCollection"
 resp = session.delete(url)
 resp = json.loads(resp.text)
 if resp['error'] is True:
@@ -461,7 +413,7 @@ else:
     print("Clear Collection Access Level: ", resp)
 
 # Clear Stream Access Level
-url = FED_URL + "/_api/key/" + keyid + "/database/_system/stream/c8globals.testStream"
+url = HTTP_URL + "/_api/key/" + keyid + "/database/_system/stream/c8globals.testStream"
 resp = session.delete(url)
 resp = json.loads(resp.text)
 if resp['error'] is True:
@@ -470,7 +422,7 @@ else:
     print("Clear Stream Access Level: ", resp)
 
 # Delete an API Key
-url = FED_URL + "/_api/key/"+ keyid
+url = HTTP_URL + "/_api/key/"+ keyid
 resp = session.delete(url, data = json.dumps(payload))
 resp = json.loads(resp.text)
 if resp['error'] is True:
@@ -533,14 +485,14 @@ body: body ? JSON.stringify(body) : undefined,
 }
 const EMAIL = "nemo@nautilus.com";
 const PASSWORD = "xxxxxx";
-const FEDERATION_URL = "https://api-gdn.prod.macrometa.io";
+const HTTP_URL = "https://api-gdn.prod.macrometa.io";
 
 const COLLECTION_NAME = "testCollection";
 const STREAM_NAME = "testStream"
 const KEY_ID = "id1"
 const run = async function () {
 try {
-const connection = new APIRequest(FEDERATION_URL);
+const connection = new APIRequest(HTTP_URL);
 
 /* -------------------- Login (nemo@nautilus.com/xxxxxx) -------------------- */
 

@@ -13,19 +13,17 @@ This page explains how to create a new Document Store collection.
 
 Follow these instructions to create a new collection using the GDN console web UI.
 
-1. [Log in to your Macrometa account](https://auth.paas.macrometa.io/).
-2. Click **COLLECTIONS**.
+1. [Log in to your Macrometa account](https://auth-play.macrometa.io/).
+2. Click **Data > Collections**.
 3. Click **New Collection**.
 4. Click **Document Store**.
-5. Enter information about the collection and then click **Create**.
+5. Enter information about the collection:
 
    - **Collection Name -** Required. A unique name to distinguish the collection. Spaces are not allowed.
-   - **Geo Distribution -** Select whether to store data globally or locally.
-   - **Enable Collection stream -** Create a stream for this collection. You can do this now or after the collection is created.
-   - **Wait for sync -** Synchronize to disk before completing document creation or update.
+   - **Enable Collection stream -** Enable streams for all locations for this collection.
+   - **Distribution -** Required. Select whether to store data globally or locally. Default is **Global**.
 
-
-Use our interactive API Reference with code generation in 18 programming languages to [create a Document Store Collection](/api#/operations/handleCommandPost:CreateCollection). 
+6. Click **Create**. If you are missing required information, then you cannot complete this step.
 
 </TabItem>
 <TabItem value="py" label="Python SDK">
@@ -34,7 +32,7 @@ The below example shows the steps for connecting a fabric and then creating a co
 
 ```py
   # Simple Approach
-  client = C8Client(protocol='https', host='gdn.paas.macrometa.io', port=443,
+  client = C8Client(protocol='https', host='play.paas.macrometa.io', port=443,
                           email='nemo@nautilus.com', password='xxxxx',
                           geofabric='_system')
   client.create_collection(name='employees')
@@ -52,15 +50,15 @@ const password = "xxxxxx";
 const fabric = "_system";
 const collectionName = "employees";
 const client = new jsc8({
-  url: "https://gdn.paas.macrometa.io",
+  url: "https://play.paas.macrometa.io",
   fabricName: fabric
 });
 
 // Or use one of the following authentication methods and remove the commenting.
 // Create an authenticated instance with a JWT token.
-// const clientUsingJwt = new jsc8({url: "https://gdn.paas.macrometa.io" , token: "XXXX" , fabricName: fabric});
+// const clientUsingJwt = new jsc8({url: "https://play.paas.macrometa.io" , token: "XXXX" , fabricName: fabric});
 // Create an authenticated instance with an API key.
-// const clientUsingApiKey = new jsc8({url: "https://gdn.paas.macrometa.io" , apiKey: "XXXX" , fabricName: fabric });
+// const clientUsingApiKey = new jsc8({url: "https://play.paas.macrometa.io" , apiKey: "XXXX" , fabricName: fabric });
 
 function messageHandler (error) {
   const message = {
@@ -101,12 +99,12 @@ createCollection()
 </TabItem>
 <TabItem value="apo" label="REST API">
 
-Use our interactive API Reference with code generation in 18 programming languages to [create a Document Store Collection](https://macrometa.com/docs/api#/operations/handleCommandPost:CreateCollection). 
+Use our interactive API Reference with code generation in 18 programming languages to [create a Document Store Collection](https://www.macrometa.com/docs/api#/operations/handleCommandPost:CreateCollection). 
 
 </TabItem>
 <TabItem value="cli" label="CLI">
 
-Use the [gdnsl collection](../../cli/collections-cli.md) CLI command to create a Document Store collection.
+Use the [gdnsl collection](../../cli/collections-cli) CLI command to create a Document Store collection.
 
 </TabItem>
 </Tabs>  

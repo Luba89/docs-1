@@ -3,10 +3,12 @@
 
 # Production
 /build
+/public
 
 # Generated files
 .docusaurus
 .cache-loader
+package-lock.json
 
 # Misc
 .DS_Store
@@ -24,3 +26,9 @@ yarn-error.log*
 
 .env
 .vercel
+_ignore
+.idea
+Brewfile
+*.lock
+yarn.lock
+yarn.lock

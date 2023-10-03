@@ -5,14 +5,18 @@ title: Persistent Indexes
 
 This is an introduction to C8DB persistent indexes. In a persistent index, the index entries are written to disk when documents are stored or updated.
 
+:::note
+The `unique` trait has been temporarily disabled for all indexes. It will be re-enabled in a future release.
+:::
+
 It is possible to define a persistent index on one or more attributes (or paths) of documents. The index is then used in queries to locate documents within a given range. If the index is declared unique, then no two documents are allowed to have the same set of attribute values.
 
 Creating a new document or updating a document will fail if the uniqueness is violated. If the index is declared sparse, a document will be excluded from the index and no uniqueness checks will be performed if any index attribute value is not set or has a value of `null`.
 
 ## Create Persistent Index in GDN Console
 
-1. [Log in to your Macrometa account](https://auth.paas.macrometa.io/).
-1. Click **COLLECTIONS**.
+1. [Log in to your Macrometa account](https://auth-play.macrometa.io/).
+1. Click **Data > Collections**.
 1. Click the collection that you want to create an index for.
 1. Click **Indexes**.
 1. In **Type**, select **Persistent Index**.
@@ -33,9 +37,9 @@ unique array index.
 Ensures that a unique persistent index exists
 
 ```cURL
-curl -X 'POST' 'https://api-gdn.eng.macrometa.io/_fabric/_system/_api/index/persistent?collection=collectionName' \
+curl -X 'POST' 'https://api-play.paas.macrometa.io/_fabric/_system/_api/index/persistent?collection=collectionName' \
  -H 'Authorization: bearer <token>'                                                                              \    
- -d '{ "fields": [ "type" : "persistent", "fields::["field1", ..., "fieldn" ], "unique": true}'
+ -d '{ "type" : "persistent", "fields:["field1", ..., "fieldn" ], "unique": true}'
 ```
 
 Creates a unique persistent index on all documents using *field1*, ... *fieldn* as attribute paths. At least one attribute path has to be given. The index will be non-sparse by default.
@@ -44,9 +48,9 @@ All documents in the collection must differ in terms of the indexed attributes. 
 
 To create a sparse unique index, set the *sparse* attribute to `true`:
 ```cURL
-curl -X 'POST' 'https://api-gdn.eng.macrometa.io/_fabric/_system/_api/index/persistent?collection=collectionName'  \
+curl -X 'POST' 'https://api-play.paas.macrometa.io/_fabric/_system/_api/index/persistent?collection=collectionName'  \
  -H 'Authorization: bearer <token>'                                                                               \
- -d '{ "fields": [ "type" : "persistent", "fields: ["field1", ..., "fieldn" ], "unique": true, "sparse" : true}'
+ -d '{ "type" : "persistent", "fields: ["field1", ..., "fieldn" ], "unique": true, "sparse" : true}'
 ```
 
 In a sparse index all documents will be excluded from the index that do not contain at least one of the specified index attributes or that have a value of `null` in any of the specified index attributes. Such documents will not be indexed, and not be taken into account for uniqueness checks.
@@ -55,12 +59,11 @@ In a non-sparse index, these documents will be indexed (for non-present indexed 
 
 In case that the index was successfully created, an object with the index details, including the index-identifier, is returned.
 
-
 To ensure that a non-unique persistent index exists
 ```cURL
-curl -X 'POST' 'https://api-gdn.eng.macrometa.io/_fabric/_system/_api/index/persistent?collection=collectionName' \
+curl -X 'POST' 'https://api-play.paas.macrometa.io/_fabric/_system/_api/index/persistent?collection=collectionName' \
  -H 'Authorization: bearer <token>'                                                                              \
- -d '{ "fields": [ "type" : "persistent", "fields::["field1", ..., "fieldn" ]}'
+ -d '{ "type" : "persistent", "fields:["field1", ..., "fieldn" ]}'
 ```
 
 Creates a non-unique persistent index on all documents using *field1*, ... *fieldn* as attribute paths. At least one attribute path has to be given. The index will be non-sparse by default.

@@ -8,34 +8,33 @@ This brief tutorial will show you have to authenticate to the GDN using it's RES
 ## Auth and create first collection
 
 ```js
-const macrometaHost = "https://api-gdn.paas.macrometa.io"
+const macrometaHost = "https://api-play.paas.macrometa.io"
 const authEndpoint = macrometaHost + "/_open/auth"
 const collectionEndpoint = macrometaHost + "/_fabric/_system/_api/collection"
 const type = "application/json;charset=UTF-8"
 const authInfo = {
-  "email": "captian@nemo.com",
-  "password": "<P@55w0rd>",
-  "tenant": "captian_nemo.com",
-  "username": "root"
+  "email": "nemo@nautilus.com",
+  "password": "xxxxxx"
 }
 
 const newCollection = {
-  "name": "mySecondCollection"
+  "name": "myCollection"
+}
+const getOptions = (requestBody, token) => ({
+  method: 'POST',
+  body: JSON.stringify(requestBody),
+  headers: {
+    authorization: token,
+    "content-type": type
   }
-const getOptions = (requestBody,token) => ({
-method:'POST',
-body:JSON.stringify(requestBody),
-headers: { authorization:token,
-       "content-type": type
-        },
 });
 
-async function handleRequest() { 
-  const jwtRequest = await fetch(authEndpoint,getOptions(authInfo,""))
+async function handleRequest () {
+  const jwtRequest = await fetch(authEndpoint, getOptions(authInfo, ""))
   const jwtResponse = await jwtRequest.json();
-  const jwtToken=`bearer ${jwtResponse.jwt}`
+  const jwtToken = `bearer ${jwtResponse.jwt}`
 
-  const collectionRequest = await fetch(collectionEndpoint,getOptions(newCollection,jwtToken))
+  const collectionRequest = await fetch(collectionEndpoint, getOptions(newCollection, jwtToken))
   const collectionResponse = await collectionRequest.json()
   return new Response(JSON.stringify(collectionResponse))
 }
@@ -43,6 +42,7 @@ async function handleRequest() {
 addEventListener("fetch", event => {
   return event.respondWith(handleRequest())
 })
+
 ```
 
 ![Workers](/img/worker-console.png)
@@ -72,5 +72,3 @@ addEventListener("fetch", event => {
 ```
 
 Now you have a collection created, you can check it out in the Macrometa console in **Collections**.
-
-If you'd like to learn more about the Macrometa service, head over to [What is Macrometa](https://macrometa.com/docs/what-is-macrometa) to get acquainted with the entire platform.

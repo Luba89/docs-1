@@ -11,8 +11,8 @@ To switch to GDN, you must change the connection URL, `AccessKey`, and `SecretKe
 
 Follow these instructions to create a new collection using the GDN console web UI.
 
-1. [Log in to your Macrometa account](https://auth.paas.macrometa.io/).
-1. Click **Collections**.
+1. [Log in to your Macrometa account](https://auth-play.macrometa.io/).
+1. Click **Data > Collections**.
 1. Click **New Collection**.
 1. Click **Dynamo Table**.
 1. Enter information about the collection and then click **Create**.
@@ -26,6 +26,6 @@ Follow these instructions to create a new collection using the GDN console web U
 
 ## Create a Dynamo Table Collection with Code
 
-Use [createTable](reference/createTable.md) to create a new Dynamo table in the collection.
+Use [createTable](../../queries/dynamo-support/reference/createTable) to create a new Dynamo table in the collection.
 
-Refer to the other topics in this section for various examples using this function with the SDK, CLI, and Boto3.
+Refer to the other topics in [Dynamo Support](../../queries/dynamo-support/using-aws-cli.md) for various examples using this function with the SDK, CLI, and Boto3.

@@ -13,10 +13,10 @@ This section describes the features available in the GDN console and how to work
 
 Once you log in to a Macrometa account, you can view all collections that you have access to.
 
-1. Log in to Macrometa.
-1. Click **Collections**.
+1. [Log in to your Macrometa account](https://auth-play.macrometa.io/).
+1. Click **Data > Collections**.
 
-Macrometa dispays a list of collections. The following columns show information about each collection.
+Macrometa displays a list of collections. The following columns show information about each collection.
 
 | Field Name  | Description  |
 |---|---|
@@ -40,24 +40,25 @@ When viewing your collections, you can click **New Collection** to create a new 
 
 - [Create a Document Store](documents/create-document-store.md)
 - [Create a Key-Value Store](keyvalue/create-key-value-store.md)
+- [Create a Redis Mode](redis-mode/create-redis-mode)
 - [Create a Dynamo Table](dynamo/create-dynamo-table.md)
-- [Create a Graph Edge](graphs/create-graph-edge.md)
+- [Create a Graph Edge](../graphs/graph-tasks/create-graph-edge-collection.md)
 
 </TabItem>
 <TabItem value="apo" label="REST API">
 
 Use our interactive API Reference with code generation in 18 programming languages to:
 
-- [List All Collections](https://macrometa.com/docs/api#/operations/handleCommandGet)
-- [Get Information About a Collection](https://macrometa.com/docs/api#/operations/handleCommandGet:collectionGetProperties)
-- [Get Number of Documents in a Collection](https://macrometa.com/docs/api#/operations/handleCommandGet:getCollectionCount)
+- [List All Collections](https://www.macrometa.com/docs/api#/operations/handleCommandGet)
+- [Get Information About a Collection](https://www.macrometa.com/docs/api#/operations/handleCommandGet:collectionGetProperties)
+- [Get Number of Documents in a Collection](https://www.macrometa.com/docs/api#/operations/handleCommandGet:getCollectionCount)
 
 </TabItem>
 <TabItem value="cli" label="CLI">
 
-Use the [gdnsl collection list](../cli/collections-cli.md#gdnsl-collection-list) CLI command to see what collections exist.
+Use the [gdnsl collection list](../cli/collections-cli#gdnsl-collection-list) CLI command to see what collections exist.
 
-Use the [gdnsl collection describe](../cli/collections-cli.md#gdnsl-collection-describe) CLI command to learn more about a specific collection.
+Use the [gdnsl collection describe](../cli/collections-cli#gdnsl-collection-describe) CLI command to learn more about a specific collection.
 
 Output from these commands looks similar to the following:
 
@@ -70,6 +71,7 @@ MacBook-Pro ~ % gdnsl collection list
 │ docs   │
 │ dynamo │
 │ kv     │
+│ redis  │
 └────────┘
 
 MacBook-Pro ~ % gdnsl collection describe kv

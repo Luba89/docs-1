@@ -1,5 +1,5 @@
 ---
-sidebar_position: 8
+sidebar_position: 120
 title: Forever 42
 ---
 
@@ -9,7 +9,7 @@ title: Forever 42
 
 | **Tenant** | **Fabric** | **Password** | **GUI** | **Source Code**|
 |----------- |----------|-----------|--------------|-----------|
-| demo-lbrands@macrometa.io | `_system` | `xxxxxxxxxx` | [**Macrometa Forever 42**](https://cf.macrometa.io/) ||
+| demo-forever42@macrometa.io | `_system` | `xxxxxxxxxx` | [**Macrometa Forever 42**](https://cf.macrometa.io/) ||
 
 ![Forever 42](/img/cf-lbrands.png)
 

@@ -1,10 +1,14 @@
 ---
 sidebar_position: 10
-title: Search
+title: Search Views
 slug: search
 ---
 
-Macrometa GDN Search (or _C8Search_) is a full-text search engine that supports key values, documents, and graphs as data models. Compared to a a [full-text index](../collections/indexing/working-with-indexes#fulltext-indexes) C8Search is more configurable and customizable, combining Boolean and generalized ranking retrieval techniques to refine your search results. All Boolean-approved results are ranked by relevance to the respective query using the Vector Space Model in conjunction with BM25 or TF-IDF weighting schemes.
+Macrometa GDN Search is a full-text search engine that supports key values, documents, and graphs as data models. Compared to a [full-text index](../collections/indexing/fulltext-indexes.md), Macrometa Search is more configurable and customizable, combining Boolean and generalized ranking retrieval techniques to refine your search results. All Boolean-approved results are ranked by relevance to the respective query using the Vector Space Model in conjunction with BM25 or TF-IDF weighting schemes.
+
+GDN Search is equipped with a state-of-the-art indexing and search facility that enables users to perform sophisticated search operations on [multi-model](https://www.macrometa.com/topics/multi-model-database) data storage including key-value pairs, documents, and graphs. You do not need to reformat data to make it compatible with GDN search.
+
+## Features
 
 GDN Search provides the following capabilities:
 
@@ -19,15 +23,19 @@ GDN Search provides the following capabilities:
 
 ![Architecture of GDN Search](/img/search/architecture.jpg)
 
+## Views and Analyzers
+
 We provide _search views_ and _analyzers_ that boost the efficiency of your search queries:
 
-- A [search view](../../docs/search/views) is a virtual collection that provides fast full-text searching over multiple linked collections.
-- An [analyzer](../../docs/search/analyzers) parses input values and transforms them into sets of sub-values for the following use cases:
+- A [search view](views/) is a virtual collection that provides fast full-text searching over multiple linked collections.
+- An [analyzer](analyzers/) parses input values and transforms them into sets of sub-values for the following use cases:
 
   - Tokenization (splitting text into words and normalizing them).
   - Language-specific word stemming.
   - Case conversion.
   - Removal of diacritical (accent) marks.
+
+## Queries
 
 GDN Search features are integrated into C8QL as a SEARCH operation and a set of C8QL functions. Some use cases include:
 
